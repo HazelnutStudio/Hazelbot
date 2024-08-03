@@ -44,9 +44,9 @@ async def star_message(message, client):
 
     await channel.send(msg)
 
-TTV_LINK = "twitch.tv/hazelnutstudio/clip/"
+VALID_LINKS = ["twitch.tv/hazelnutstudio/clip", "clips.twitch.tv/"]
 async def starboard_check_ttv_link(message):
-    if TTV_LINK in message:
-        return True
-    else:
-        return False
+    for x in VALID_LINKS:
+        if x in message:
+            return True
+    return False
