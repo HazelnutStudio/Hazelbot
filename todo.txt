@@ -1,5 +1,4 @@
 To Do:
- - #2 autodelete
  - custom starboard thingy
  - clips channel autodelete
  - maybe some silly things (suggestions from chat??)

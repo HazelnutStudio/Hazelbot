@@ -2,6 +2,7 @@ import discord
 import os
 from dotenv import load_dotenv
 from two import two_on_message, two_on_message_edit
+from starboard import starboard_on_message, starboard_on_reaction
 
 load_dotenv()
 
@@ -20,7 +21,8 @@ async def on_ready():
 @client.event
 async def on_message(message):
     await two_on_message(message, client.user)
-    
+    await starboard_on_message(message, client)
+
     if message.author == client.user:
         return
 
@@ -30,6 +32,10 @@ async def on_message(message):
 @client.event
 async def on_message_edit(before, after):
     await two_on_message_edit(before, after, client)
+
+@client.event
+async def on_raw_reaction_add(payload):
+    await starboard_on_reaction(payload, client)
 
 def get_botUser():
     return client.user

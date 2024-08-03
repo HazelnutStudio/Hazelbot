@@ -36,7 +36,7 @@ async def two_on_message_edit(before, after, client):
         print(f"two: message edit is not valid, invoking Wrath.")
         await before.channel.send(f"<@{before.author.id}> has made an invalid edit!! they will be obli-two-rated.")
         await before.author.edit(nick = "LOOK AT THIS [LOSER]!!")
-        await before.author.timeout(timedelta(seconds=60))
+        await before.author.timeout(timedelta(seconds=222))
         role = client.get_guild(1232662729047801928).get_role(PUNISHMENT_ROLE_ID)
         await before.author.add_roles(role)
 
