@@ -1,6 +1,7 @@
 import discord
 import os
 from dotenv import load_dotenv
+from two import two_on_message
 
 load_dotenv()
 
@@ -18,14 +19,16 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    await two_on_message(message, client.user)
+    
     if message.author == client.user:
         return
 
     if message.content.startswith('hello'):
         await message.channel.send('Hello!')
 
-async def test(message):
-    await message.channel.send(message)
+def get_botUser():
+    return client.user
 
 client.run(TOKEN)
 
