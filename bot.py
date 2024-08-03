@@ -1,12 +1,12 @@
 import discord
 import os
 from dotenv import load_dotenv
-from two import two_on_message
+from two import two_on_message, two_on_message_edit
 
 load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
-print(TOKEN)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -26,6 +26,10 @@ async def on_message(message):
 
     if message.content.startswith('hello'):
         await message.channel.send('Hello!')
+
+@client.event
+async def on_message_edit(before, after):
+    await two_on_message_edit(before, after, client.user)
 
 def get_botUser():
     return client.user
