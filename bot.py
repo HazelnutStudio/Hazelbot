@@ -29,7 +29,7 @@ async def on_message(message):
 
 @client.event
 async def on_message_edit(before, after):
-    await two_on_message_edit(before, after, client.user)
+    await two_on_message_edit(before, after, client)
 
 def get_botUser():
     return client.user

@@ -19,8 +19,9 @@ async def two_on_message(message, bot):
         print(f"two: message {message.content} is Unacceptable. Deleting...")
         await message.delete()
 
-async def two_on_message_edit(before, after, bot):
-    if before.author == bot:
+PUNISHMENT_ROLE_ID = 1269212437438271509
+async def two_on_message_edit(before, after, client):
+    if before.author == client.user:
         return
 
     if before.channel.name != CHANNEL_NAME:
@@ -35,7 +36,9 @@ async def two_on_message_edit(before, after, bot):
         print(f"two: message edit is not valid, invoking Wrath.")
         await before.channel.send(f"<@{before.author.id}> has made an invalid edit!! they will be obli-two-rated.")
         await before.author.edit(nick = "LOOK AT THIS [LOSER]!!")
-        await before.author.timeout(timedelta(seconds=30))
+        await before.author.timeout(timedelta(seconds=60))
+        role = client.get_guild(1232662729047801928).get_role(PUNISHMENT_ROLE_ID)
+        await before.author.add_roles(role)
 
 valid_substrings = ["2", "two", "Two", "TWo", "TWO", "tWO", "twO", "tWo", "TwO", "💕", "②","₂", "²", "⑵", "⒉", "２", "𝟐", "𝟚", "𝟤", "𝟮", "🄃", "𝟸" ]
 
