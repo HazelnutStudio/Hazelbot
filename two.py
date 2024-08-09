@@ -40,7 +40,7 @@ async def on_message_edit(before, after, client):
         role = client.get_guild(1232662729047801928).get_role(PUNISHMENT_ROLE_ID)
         await before.author.add_roles(role)
 
-valid_substrings = ["2", "two", "💕", "②","₂", "²", "⑵", "⒉", "２", "𝟐", "𝟚", "𝟤", "𝟮", "🄃", "𝟸" ]
+valid_substrings = ["2", "two", "💕", "②","₂", "²", "⑵", "⒉", "２", "𝟐", "𝟚", "𝟤", "𝟮", "🄃", "𝟸", "👭", "👬", "👆", "☹️", "🔢", "🐈", "🕛", "🕧", "🕑", "🕝", "🐄", "🐕", "🗝️", "🎙️", "🐁", "☃️", "🌟", "🐅", "🚆", "🈹", "🈚", "☂️", "🐋" ]
 
 async def search_string(string):
     for x in valid_substrings:
@@ -48,6 +48,6 @@ async def search_string(string):
             print(f"two: found substring {x} in string {string}!")
             return True
     print(f"two: could not find any matching substrings in {string}.")
-    return False
+    return False 
 
 # hi :)
