@@ -3,7 +3,7 @@ from datetime import timedelta
 
 CHANNEL_NAME = "2"
 
-async def two_on_message(message, bot):
+async def on_message(message, bot):
     
     if message.author == bot:
         return
@@ -20,7 +20,7 @@ async def two_on_message(message, bot):
         await message.delete()
 
 PUNISHMENT_ROLE_ID = 1269212437438271509
-async def two_on_message_edit(before, after, client):
+async def on_message_edit(before, after, client):
     if before.author == client.user:
         return
 

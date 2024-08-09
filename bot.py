@@ -1,8 +1,8 @@
 import discord
 import os
 from dotenv import load_dotenv
-from two import two_on_message, two_on_message_edit
-from starboard import starboard_on_message, starboard_on_reaction
+import starboard
+import two
 import random
 
 load_dotenv()
@@ -21,8 +21,8 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    await two_on_message(message, client.user)
-    await starboard_on_message(message, client)
+    await two.on_message(message, client.user)
+    await starboard.on_message(message, client)
 
     if message.author == client.user:
         return
@@ -31,11 +31,11 @@ async def on_message(message):
 
 @client.event
 async def on_message_edit(before, after):
-    await two_on_message_edit(before, after, client)
+    await two.on_message_edit(before, after, client)
 
 @client.event
 async def on_raw_reaction_add(payload):
-    await starboard_on_reaction(payload, client)
+    await starboard.on_reaction(payload, client)
 
 async def bot_interactions(message):
     if "silksong" in message.content.lower():

@@ -5,11 +5,11 @@ CLIPS_CHANNEL_ID = 1261665509531979797
 TOP_CLIPS_CHANNEL_ID = 1269110989387857971
 
 REACTION_EMOJI = "⭐"
-async def starboard_on_message(message, client):
+async def on_message(message, client):
     if message.channel.id != CLIPS_CHANNEL_ID:
         return
 
-    if await starboard_check_ttv_link(message.content):
+    if await check_ttv_link(message.content):
         await message.add_reaction("⭐")
     else:
         await message.delete()
@@ -17,7 +17,7 @@ async def starboard_on_message(message, client):
 
 REACTIONS_REQUIRED = 3
 BURST_SCORE = 2
-async def starboard_on_reaction(payload, client):
+async def on_reaction(payload, client):
     if payload.channel_id != CLIPS_CHANNEL_ID:
         return
     if payload.emoji.name != REACTION_EMOJI:
@@ -45,7 +45,7 @@ async def star_message(message, client):
     await channel.send(msg)
 
 VALID_LINKS = ["twitch.tv/hazelnutstudio/clip", "clips.twitch.tv/"]
-async def starboard_check_ttv_link(message):
+async def check_ttv_link(message):
     for x in VALID_LINKS:
         if x in message:
             return True
