@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import starboard
 import two
 import random
+import counting
 
 load_dotenv()
 
@@ -18,11 +19,13 @@ client = discord.Client(intents=intents)
 @client.event
 async def on_ready():
     print(f'logged in as {client.user}!')
+    await counting.initialize(client)
 
 @client.event
 async def on_message(message):
     await two.on_message(message, client.user)
     await starboard.on_message(message, client)
+    await counting.on_message(message)
 
     if message.author == client.user:
         return
@@ -32,6 +35,7 @@ async def on_message(message):
 @client.event
 async def on_message_edit(before, after):
     await two.on_message_edit(before, after, client)
+    await counting.on_message_edit(before, after)
 
 @client.event
 async def on_raw_reaction_add(payload):
