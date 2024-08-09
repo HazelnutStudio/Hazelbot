@@ -5,6 +5,7 @@ import starboard
 import two
 import random
 import counting
+import log
 
 load_dotenv()
 
@@ -20,6 +21,8 @@ client = discord.Client(intents=intents)
 async def on_ready():
     print(f'logged in as {client.user}!')
     await counting.initialize(client)
+    await log.initialize(client)
+    await log.info("bot: Hazelbot is online!")    
 
 @client.event
 async def on_message(message):

@@ -1,5 +1,6 @@
 import discord
 import re
+import log
 
 CHANNEL_NAME = "counting"
 SAVE_FILE = "counting-stats.txt"
@@ -40,9 +41,10 @@ async def on_message(message):
     await save_state()
 
 async def on_message_edit(before, after):
-    if message.channel.name != CHANNEL_NAME:
+    if before.channel.name != CHANNEL_NAME:
         return
-    await message.channel.send("idc. shut up.")
+    await before.channel.send("idc. shut up.")
+    await log.info("counting: message edited")
 
 async def is_message_valid(message):
     # credit: @benetsugarboy for the REGEX (I HATE REGEX!!!!)
@@ -64,4 +66,5 @@ async def save_state():
 
     file_contents = [f"{number}\n", f"{last_author}"]
     file.writelines(file_contents)
+    await log.info(f"counting: saved state\n{file_contents}")
     file.close()
