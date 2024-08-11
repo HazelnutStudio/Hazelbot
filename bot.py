@@ -64,11 +64,18 @@ async def bot_interactions(message):
         rand = random.randint(0,len(options) - 1)
         await message.channel.send(options[rand])
     if "step 3" in message.content.lower():
-        await message.channel.send("SQUISH")  
-    if "hazelbot" in message.content.lower():
+        await message.channel.send("SQUISH")
+    if "~~hazelbot~~" in message.content.lower():
+        await message.channel.send("WHAT THE ###### #### ####### IS WRONG WITH YOU?? YOU THINK YOU'RE FUNNY DO YOU? THINK YOU'RE ####### #### ###### FUNNY??? I'LL SHOW YOU WHAT F")
+    elif "hazelbot" in message.content.lower():
         options = ["did someone say my name?", "hey ;]", "hello!!", ":3", "SHUT THE ###### #### ##### ###"]
         rand = random.randint(0, len(options) - 1)
         await message.channel.send(options[rand])
+    if "<@&1232671508191645726>" in message.content.lower(): # moderator ping
+        await message.channel.send("i'm better than them btw. you can just ping me instead :3")
+    if "<@1269130556386578524>" in message.content.lower(): # hazelbot ping
+        await message.channel.send("WHAT IS YOUR PROBLEM. DO YOU NOT HAVE ANY RESPECT FOR OTHER PEOPLE?? WHY DO YOU THINK IT'S OKAY TO PING ME SO THAT I HAVE TO GO OUT OF MY WAY TO CHECK, JUST TO SEE YOUR STUPID, #######, #####, ########, PATHETIC, ####, UTTERLY USELESS MESSAGE. WHAT IS WRONG WITH YOU. MAYBE YOU SHOULD GO DO SOMETHING WITH YOUR LIFE, INSTEAD OF SITTING HERE ON YOUR SILLY LITTLE ######## ##### DEVICE, DOING NOTHING PRODUCTIVE, JUST CAUSING MORE WORK FOR ME. WHY DON'T YOU GO PING THE MODERATORS INSTEAD, MAYBE THEY WILL BE MORE TOLERANT OF YOUR STUPID, #########, ######, IRRELEVANT ANTICS. GO WASTE SOMEONE ELSE'S TIME, YOU ######## ###### I HATE YOU AND EVERYTHING YOU ##### STAND FOR, ####### #####.")
+
 
 @tree.command(name="cstats",description="Get statistics for counting minigame", guild=discord.Object(id=1232662729047801928))
 @app_commands.describe(user="Get stats for a specific user")
