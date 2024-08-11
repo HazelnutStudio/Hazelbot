@@ -43,7 +43,7 @@ async def on_message(message):
     if message.author == client.user:
         if "## Quote Message" in message.content:
             await quotes.start_vote(message)
-        return
+
 
     await bot_interactions(message) 
 
