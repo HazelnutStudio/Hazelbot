@@ -20,7 +20,6 @@ async def on_react(payload):
     if not "## Quote Message" in message.content:
         return
     if payload.emoji != discord.PartialEmoji.from_str(REACTION_EMOJI):
-        await log.info(f"uh oh :( {payload.emoji}")
         return
     
     await log.info("quotes: reaction detected!")
@@ -31,32 +30,30 @@ async def on_react(payload):
             message.channel.send("i can't test super reacts yet, so they don't work currently. sorry!!")
         else:
             if x.emoji == REACTION_EMOJI:
-                await log.info("counting emoji")
                 score += 1 * x.count
 
     if score >= REQUIRED_SCORE:
         link = await get_quote_message_link(message.content)
-        await add_quote(link)
+        await add_quote(link, message)
 
 async def get_quote_message_link(message):
     link_match = re.search("(http|https):\/\/(discord(?:(?:\.com+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])", message)
     if link_match == None:
         await log.info("quotes: no link match found??")
         return None
-    await log.info(link_match.group())
     return link_match.group()
 
 QUOTES_CHANNEL_ID = 1272092100795830313
 
-async def add_quote(message_link):
+async def add_quote(message_link, og_message):
     matches = re.findall("\d+", message_link)
     if matches == None:
         return
 
-    await log.info(matches[1])
     channel = client.get_channel(int(str(matches[1])))
     message = await channel.fetch_message(int(str(matches[2])))
 
     qchannel = client.get_channel(QUOTES_CHANNEL_ID)
     await qchannel.send(f"\"{message.content}\"\n \- <@{message.author.id}>, <t:{round(message.created_at.timestamp())}:f>")
     await log.info("quotes: quote added!")
+    await og_message.delete()

@@ -15,7 +15,7 @@ async def on_message(message, client):
         await message.delete()
 
 
-REACTIONS_REQUIRED = 3
+REACTIONS_REQUIRED = 1
 BURST_SCORE = 2
 async def on_reaction(payload, client):
     if payload.channel_id != CLIPS_CHANNEL_ID:
@@ -36,6 +36,9 @@ async def on_reaction(payload, client):
 
     if score >= REACTIONS_REQUIRED:
         await star_message(message, client)
+        return True
+    else:
+        return False
 
 async def star_message(message, client):
     await log.info(f"starboard: Sent message \"{message.content}\" to the starboard!")
@@ -44,6 +47,7 @@ async def star_message(message, client):
     msg = f"> {edited_message}\n \- submitted by <@{message.author.id}>"
 
     await channel.send(msg)
+    await message.delete()
 
 VALID_LINKS = ["twitch.tv/hazelnutstudio/clip", "clips.twitch.tv/"]
 async def check_ttv_link(message):

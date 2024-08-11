@@ -53,7 +53,8 @@ async def on_message_edit(before, after):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    await starboard.on_reaction(payload, client)
+    if await starboard.on_reaction(payload, client) == True:
+        return
     await quotes.on_react(payload)
 
 async def bot_interactions(message):
