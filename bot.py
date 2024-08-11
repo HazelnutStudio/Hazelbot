@@ -8,6 +8,8 @@ import counting
 import log
 from discord import app_commands
 import json
+import quotes
+
 load_dotenv()
 
 TOKEN = str(os.getenv('DISCORD_TOKEN'))
@@ -26,6 +28,7 @@ async def on_ready():
     print(f'logged in as {client.user}!')
     await counting.initialize(client)
     await log.initialize(client)
+    await quotes.initialize(client)
     await log.info("bot: Hazelbot is online!") 
     await tree.sync(guild=discord.Object(id=1232662729047801928))
     await log.info("bot: tree synced!")
@@ -37,6 +40,8 @@ async def on_message(message):
     await counting.on_message(message)
 
     if message.author == client.user:
+        if "## Quote Message" in message.content:
+            await quotes.start_vote(message)
         return
 
     await bot_interactions(message) 
@@ -49,6 +54,7 @@ async def on_message_edit(before, after):
 @client.event
 async def on_raw_reaction_add(payload):
     await starboard.on_reaction(payload, client)
+    await quotes.on_react(payload)
 
 async def bot_interactions(message):
     if "silksong" in message.content.lower():
@@ -96,6 +102,17 @@ async def clogsave(interaction):
     save = await counting.get_savefile()
     save_json = json.dumps(save)
     await interaction.response.send_message(f"```json\n{save_json}\n```")
+
+MESSAGE_LINK_PREFIX = "https://discord.com/channels/1232662729047801928/"
+
+@tree.command(name="quote", description="Starts a vote to quote the given message", guild=discord.Object(id=1232662729047801928))
+@app_commands.describe(message_link="URL of the message to quote. (right click/hold press on the message and select copy message link)")
+async def quote(interaction, message_link:str):
+    if not MESSAGE_LINK_PREFIX in message_link:
+        await interaction.response.send_message(f"YOU SUCK. YOU SUCK. YOU SUCK. I AM **NOT** QUOTING {message_link}. YOU SUCK YOU SUCK I HATE YOU I H")
+    else:
+        await interaction.response.send_message(f"## Quote Message\n<@{interaction.user.id}> wants to quote the message {message_link}. React with 😍 to vote.")
+    await log.info("bot: responded to /quote.")
 
 
 client.run(TOKEN)
