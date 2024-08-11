@@ -45,29 +45,39 @@ async def on_message(message):
         await message.add_reaction("❌")
         if save_contents['st_highest_count'] == number - 1:
             save_contents.update({'st_ruinedby':message.author.id})
-            save_contents['st_failures'] += 1
+
+        save_contents['st_failures'] += 1
         user_stats.update({"failures":user_stats.get("failures", 0) + 1})
+
         if user_stats.get("biggest_failure", 0) < number - 1:
             user_stats.update({"biggest_failure":number - 1})
+
         number = 1
         last_author = 0
+
         save_contents.update({f"st_user_{message.author.id}":user_stats})
         await message.channel.send(f"<@{message.author.id}> FAILED. THEY ARE A FAILURE. THEY SUCK. ETC.")
+
         await save_state()
+
         return
+
     elif message_valid == 2:
         return
 
     last_author = message.author.id
-    
     number += 1
+
     save_contents['st_counts'] += 1
     user_stats.update({"total_counts":user_stats.get("total_counts", 0) + 1})
+
     if user_stats.get("highest_count", 0) <= number - 1:
         user_stats.update({"highest_count":number - 1})
 
     await message.add_reaction("✅")
+
     save_contents.update({f"st_user_{message.author.id}":user_stats})
+
     await save_state()
 
 async def on_message_edit(before, after):
