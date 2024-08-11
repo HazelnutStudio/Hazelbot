@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 counting-stats.txt
+start.bat
