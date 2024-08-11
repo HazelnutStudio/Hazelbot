@@ -99,9 +99,9 @@ async def cstats(interaction, user:discord.User = None):
         else:
             user_stats = dict(user_stats)
             content = f"**Highest Count:** {user_stats.get('highest_count', 0)}"
-            content += f"\n**Total Counts:** {user_stats.get('total_counts', 0)}"
+            content += f"\n**Total Counts:** {user_stats.get('total_counts', 0)} ({round((user_stats.get('total_counts', 0) / save['st_counts']) * 100)}%)"
             content += f"\n**Biggest Failure:** {user_stats.get('biggest_failure', 0)}"
-            content += f"\n**Total Failures:** {user_stats.get('failures', 0)}"
+            content += f"\n**Total Failures:** {user_stats.get('failures', 0)} ({round((user_stats.get('failures', 0) / save['st_failures']) * 100)}%)"
         embed = discord.Embed(colour = discord.Colour.from_str("#87ffc9"), title = f"Counting Stats - {user.name}", description = content)
         embed.set_thumbnail(url=str(user.display_avatar))
         await interaction.response.send_message(embed=embed)
