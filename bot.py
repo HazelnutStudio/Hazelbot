@@ -105,7 +105,7 @@ async def cstats(interaction, user:discord.User = None):
         embed = discord.Embed(colour = discord.Colour.from_str("#87ffc9"), title = f"Counting Stats - {user.name}", description = content)
         embed.set_thumbnail(url=str(user.display_avatar))
         await interaction.response.send_message(embed=embed)
-@tree.command(name="clogsave",description="Log the save file for the counting minigame (for debug purposes)")
+@tree.command(name="clogsave",description="Log the save file for the counting minigame (for debug purposes)", guild=discord.Object(id=1232662729047801928))
 @app_commands.default_permissions(administrator=True)
 async def clogsave(interaction):
     save = await counting.get_savefile()
