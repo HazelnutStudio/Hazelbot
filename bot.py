@@ -29,7 +29,8 @@ async def on_ready():
     await counting.initialize(client)
     await log.initialize(client)
     await quotes.initialize(client)
-    await log.info("bot: Hazelbot is online!") 
+    await log.info("bot: Hazelbot is online!")
+    tree.clear_commands(guild=discord.Object(id=1232662729047801928))
     await tree.sync(guild=discord.Object(id=1232662729047801928))
     await log.info("bot: tree synced!")
 
