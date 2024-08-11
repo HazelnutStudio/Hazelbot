@@ -15,7 +15,7 @@ async def on_message(message, client):
         await message.delete()
 
 
-REACTIONS_REQUIRED = 1
+REACTIONS_REQUIRED = 3
 BURST_SCORE = 2
 async def on_reaction(payload, client):
     if payload.channel_id != CLIPS_CHANNEL_ID:
