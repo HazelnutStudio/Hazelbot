@@ -1,21 +1,31 @@
 import discord
 import re
 import log
+import json
 
 CHANNEL_NAME = "counting"
 SAVE_FILE = "counting-stats.txt"
 number = 1
+
 async def initialize(_client):
     global client
     global number
     global last_author
+    global save_contents
 
     client = _client
+    
+    if os.path.isfile(SAVE_FILE):
+        file = open(SAVE_FILE, "r")
+        save_contents = json.loads(file.read())
+        number = save_contents['number']
+        last_author = save_contents['last_author']
+    else:
+        save_contents = {'number':0, 'last_author':0}
+        number = 0
+        last_author = 0
 
-    file = open(SAVE_FILE, "r")
-    number = int(file.readline())
-    last_author = int(file.readline())
-
+    
 async def on_message(message):
     global number
     global last_author
@@ -64,7 +74,10 @@ async def is_message_valid(message):
 async def save_state():
     file = open(SAVE_FILE, "w")
 
-    file_contents = [f"{number}\n", f"{last_author}"]
-    file.writelines(file_contents)
-    await log.info(f"counting: saved state\n{file_contents}")
+    save_contents['number'] = number
+    save_contents['last_author'] = last_author
+
+    file_contents = json.dumps(file_contents)
+    file.write(file_contents)
+    await log.info(f"counting: saved state\n```\n{file_contents}\n```")
     file.close()
