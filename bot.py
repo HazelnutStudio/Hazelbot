@@ -30,7 +30,7 @@ async def on_ready():
     await log.initialize(client)
     await quotes.initialize(client)
     await log.info("bot: Hazelbot is online!")
-    tree.clear_commands(guild=discord.Object(id=1232662729047801928))
+    tree.clear_commands(guild=None)
     await tree.sync(guild=discord.Object(id=1232662729047801928))
     await log.info("bot: tree synced!")
 
@@ -98,7 +98,7 @@ async def cstats(interaction, user:discord.User = None):
         embed = discord.Embed(colour = discord.Colour.from_str("#87ffc9"), title = f"Counting Stats - {user.name}", description = content)
         embed.set_thumbnail(url=str(user.display_avatar))
         await interaction.response.send_message(embed=embed)
-@tree.command(name="clogsave",description="Log the save file for the counting minigame (for debug purposes)", guild=discord.Object(id=1232662729047801928))
+@tree.command(name="clogsave",description="Log the save file for the counting minigame (for debug purposes)")
 @app_commands.default_permissions(administrator=True)
 async def clogsave(interaction):
     save = await counting.get_savefile()
