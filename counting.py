@@ -46,7 +46,6 @@ async def on_message(message):
         if save_contents['st_highest_count'] == number - 1:
             save_contents.update({'st_ruinedby':message.author.id})
             save_contents['st_failures'] += 1
-            user_stats.update({"highest_count":number - 1})
         user_stats.update({"failures":user_stats.get("failures", 0) + 1})
         if user_stats.get("biggest_failure", 0) < number - 1:
             user_stats.update({"biggest_failure":number - 1})
@@ -64,6 +63,9 @@ async def on_message(message):
     number += 1
     save_contents['st_counts'] += 1
     user_stats.update({"total_counts":user_stats.get("total_counts", 0) + 1})
+    if user_stats.get("highest_count", 0) <= number - 1:
+        user_stats.update({"highest_count":number - 1})
+
     await message.add_reaction("✅")
     save_contents.update({f"st_user_{message.author.id}":user_stats})
     await save_state()
