@@ -3,10 +3,14 @@ import re
 import log
 import json
 import os
+import random
 
 CHANNEL_NAME = "counting"
 SAVE_FILE = "counting-stats.txt"
 number = 1
+
+evil = False
+evil_number = 0
 
 async def initialize(_client):
     global client
@@ -30,6 +34,8 @@ async def initialize(_client):
 async def on_message(message):
     global number
     global last_author
+    global evil
+    global evil_number
     if message.author == client.user:
         return
     if message.channel.name != CHANNEL_NAME:
@@ -51,12 +57,20 @@ async def on_message(message):
 
         if user_stats.get("biggest_failure", 0) < number - 1:
             user_stats.update({"biggest_failure":number - 1})
+        
+
+        save_contents.update({f"st_user_{message.author.id}":user_stats})
+        if evil and (str(evil_number + 1) in message.content):
+            await message.channel.send(f"LOOK AT THIS IDIOT. THIS ABSOLUTE BUFFOON. THEY REALLY THOUGHT THEY COULD TRUST ME . WHAT A SILLY LITTLE CREATURE.")
+        else:
+            await message.channel.send(f"<@{message.author.id}> FAILED. THEY ARE A FAILURE. THEY SUCK. ETC.")
 
         number = 1
         last_author = 0
 
-        save_contents.update({f"st_user_{message.author.id}":user_stats})
-        await message.channel.send(f"<@{message.author.id}> FAILED. THEY ARE A FAILURE. THEY SUCK. ETC.")
+        
+        
+        evil = False
 
         await save_state()
 
@@ -77,6 +91,8 @@ async def on_message(message):
     await message.add_reaction("✅")
 
     save_contents.update({f"st_user_{message.author.id}":user_stats})
+
+    evil = False
 
     await save_state()
 
@@ -118,3 +134,21 @@ async def save_state():
 
 async def get_savefile():
     return save_contents
+
+async def clast(interaction):
+    global evil
+    global evil_number
+    if random.random() < 0.2:
+        await log.info("evil hazelbot activated >:3")
+        evil = True
+        rand = random.randint(-5, 5)
+        if rand == 0:
+            rand = random.randint(-10000, 10000)
+        if rand == 0:
+            await interaction.response.send_message("sorry loser. i just won the lottery. bye .")
+            return
+        evil_number = abs((number - 1) + rand)
+        await interaction.response.send_message(f"The most recent number was {evil_number}")
+        return
+    else:
+        await interaction.response.send_message(f"The most recent number was {number - 1}")

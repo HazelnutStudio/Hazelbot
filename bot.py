@@ -11,6 +11,7 @@ import json
 import quotes
 
 GUILD_ID = 563379046520717340
+GUILD_ID = 1232662729047801928
 
 load_dotenv()
 
@@ -124,6 +125,10 @@ async def quote(interaction, message_link:str):
     else:
         await interaction.response.send_message(f"## Quote Message\n<@{interaction.user.id}> wants to quote the message {message_link}. React with 😍 to vote.")
     await log.info("bot: responded to /quote.")
+
+@tree.command(name="clast", description="Responds with the most recent number in #counting", guild=discord.Object(id=GUILD_ID))
+async def clast(interaction):
+    await counting.clast(interaction)
 
 
 client.run(TOKEN)
