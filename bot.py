@@ -10,6 +10,8 @@ from discord import app_commands
 import json
 import quotes
 
+GUILD_ID = 563379046520717340
+
 load_dotenv()
 
 TOKEN = str(os.getenv('DISCORD_TOKEN'))
@@ -31,7 +33,7 @@ async def on_ready():
     await quotes.initialize(client)
     await log.info("bot: Hazelbot is online!")
     tree.clear_commands(guild=None)
-    await tree.sync(guild=discord.Object(id=1232662729047801928))
+    await tree.sync(guild=discord.Object(id=GUILD_ID))
     await log.info("bot: tree synced!")
 
 @client.event
@@ -77,7 +79,7 @@ async def bot_interactions(message):
         await message.channel.send("WHAT IS YOUR PROBLEM. DO YOU NOT HAVE ANY RESPECT FOR OTHER PEOPLE?? WHY DO YOU THINK IT'S OKAY TO PING ME SO THAT I HAVE TO GO OUT OF MY WAY TO CHECK, JUST TO SEE YOUR STUPID, #######, #####, ########, PATHETIC, ####, UTTERLY USELESS MESSAGE. WHAT IS WRONG WITH YOU. MAYBE YOU SHOULD GO DO SOMETHING WITH YOUR LIFE, INSTEAD OF SITTING HERE ON YOUR SILLY LITTLE ######## ##### DEVICE, DOING NOTHING PRODUCTIVE, JUST CAUSING MORE WORK FOR ME. WHY DON'T YOU GO PING THE MODERATORS INSTEAD, MAYBE THEY WILL BE MORE TOLERANT OF YOUR STUPID, #########, ######, IRRELEVANT ANTICS. GO WASTE SOMEONE ELSE'S TIME, YOU ######## ###### I HATE YOU AND EVERYTHING YOU ##### STAND FOR, ####### #####.")
 
 
-@tree.command(name="cstats",description="Get statistics for counting minigame", guild=discord.Object(id=1232662729047801928))
+@tree.command(name="cstats",description="Get statistics for counting minigame", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(user="Get stats for a specific user")
 async def cstats(interaction, user:discord.User = None):
     save = await counting.get_savefile()
@@ -105,7 +107,7 @@ async def cstats(interaction, user:discord.User = None):
         embed = discord.Embed(colour = discord.Colour.from_str("#87ffc9"), title = f"Counting Stats - {user.name}", description = content)
         embed.set_thumbnail(url=str(user.display_avatar))
         await interaction.response.send_message(embed=embed)
-@tree.command(name="clogsave",description="Log the save file for the counting minigame (for debug purposes)", guild=discord.Object(id=1232662729047801928))
+@tree.command(name="clogsave",description="Log the save file for the counting minigame (for debug purposes)", guild=discord.Object(id=GUILD_ID))
 @app_commands.default_permissions(administrator=True)
 async def clogsave(interaction):
     save = await counting.get_savefile()
@@ -114,7 +116,7 @@ async def clogsave(interaction):
 
 MESSAGE_LINK_PREFIX = "https://discord.com/channels/1232662729047801928/"
 
-@tree.command(name="quote", description="Starts a vote to quote the given message", guild=discord.Object(id=1232662729047801928))
+@tree.command(name="quote", description="Starts a vote to quote the given message", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(message_link="URL of the message to quote. (right click/hold press on the message and select copy message link)")
 async def quote(interaction, message_link:str):
     if not MESSAGE_LINK_PREFIX in message_link:
