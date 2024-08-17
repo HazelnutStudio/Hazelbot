@@ -100,7 +100,7 @@ async def eightball(message):
 async def cstats(interaction, user:discord.User = None):
     save = await counting.get_savefile()
     if user == None:
-        content = f"**Highest Count:** {save['st_highest_count']}"
+        content = f"**Highest Count:** {save['st_highest_count']} (<t:{save.get('st_highest_count_timestamp', 0)}:R>)"
         if save['st_ruinedby'] == "":
             content += "\n**Ruined by**: (count in progress)"
         else:
@@ -116,7 +116,7 @@ async def cstats(interaction, user:discord.User = None):
             content = "User has not interacted with the counting system."
         else:
             user_stats = dict(user_stats)
-            content = f"**Highest Count:** {user_stats.get('highest_count', 0)}"
+            content = f"**Highest Count:** {user_stats.get('highest_count', 0)} (<t:{user_stats.get('highest_count_timestamp',0)}:R>)"
             content += f"\n**Total Counts:** {user_stats.get('total_counts', 0)} ({round((user_stats.get('total_counts', 0) / save['st_counts']) * 100)}%)"
             content += f"\n**Biggest Failure:** {user_stats.get('biggest_failure', 0)}"
             content += f"\n**Total Failures:** {user_stats.get('failures', 0)} ({round((user_stats.get('failures', 0) / save['st_failures']) * 100)}%)"

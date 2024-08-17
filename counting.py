@@ -4,6 +4,7 @@ import log
 import json
 import os
 import random
+import time
 
 CHANNEL_NAME = "counting"
 SAVE_FILE = "counting-stats.txt"
@@ -86,7 +87,7 @@ async def on_message(message):
     user_stats.update({"total_counts":user_stats.get("total_counts", 0) + 1})
 
     if user_stats.get("highest_count", 0) <= number - 1:
-        user_stats.update({"highest_count":number - 1})
+        user_stats.update({"highest_count":number - 1,"highest_count_timestamp":f"{round(time.time())}"})
 
     await message.add_reaction("✅")
 
@@ -126,6 +127,7 @@ async def save_state():
     if save_contents['st_highest_count'] < number - 1:
         save_contents['st_highest_count'] = number - 1
         save_contents['st_ruinedby'] = ""
+        save_contents.update({'st_highest_count_timestamp':f"{round(time.time())}"})
 
     file_contents = json.dumps(save_contents)
     file.write(file_contents)
