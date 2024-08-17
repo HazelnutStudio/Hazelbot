@@ -35,6 +35,7 @@ async def on_ready():
     tree.clear_commands(guild=None)
     await tree.sync(guild=discord.Object(id=GUILD_ID))
     await log.info("bot: tree synced!")
+    await client.change_presence(activity=discord.CustomActivity(name='hazelling all over the place', emoji='☹️'))
 
 @client.event
 async def on_message(message):
