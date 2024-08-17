@@ -10,7 +10,6 @@ from discord import app_commands
 import json
 import quotes
 
-GUILD_ID = 563379046520717340
 GUILD_ID = 1232662729047801928
 
 load_dotenv()
@@ -62,6 +61,14 @@ async def on_raw_reaction_add(payload):
     await quotes.on_react(payload)
 
 async def bot_interactions(message):
+    #"hazelbot would you", "hazelbot could i", "hazelbot am i", "hazelbot "]
+    questions = ["are", "do", "did", "can", "should", "would you", "could i", "am i", "is"]
+    if message.content.endswith("?"):
+        for x in questions:
+            if message.content.lower().startswith("hazelbot " + x):
+                await eightball(message)
+                return
+
     if "silksong" in message.content.lower():
         options = ["*sigh* bapanada.", "GESSOOOOOOOOOOO", "velmi artrid", "*sigh* apaul", "SHAW", "patamas geo", "DOMA DOMA!! DOMA DOMA DOMA!!!", "RAVA"]
         rand = random.randint(0,len(options) - 1)
@@ -78,6 +85,11 @@ async def bot_interactions(message):
         await message.channel.send("i'm better than them btw. you can just ping me instead :3")
     if "<@1269130556386578524>" in message.content.lower(): # hazelbot ping
         await message.channel.send("WHAT IS YOUR PROBLEM. DO YOU NOT HAVE ANY RESPECT FOR OTHER PEOPLE?? WHY DO YOU THINK IT'S OKAY TO PING ME SO THAT I HAVE TO GO OUT OF MY WAY TO CHECK, JUST TO SEE YOUR STUPID, #######, #####, ########, PATHETIC, ####, UTTERLY USELESS MESSAGE. WHAT IS WRONG WITH YOU. MAYBE YOU SHOULD GO DO SOMETHING WITH YOUR LIFE, INSTEAD OF SITTING HERE ON YOUR SILLY LITTLE ######## ##### DEVICE, DOING NOTHING PRODUCTIVE, JUST CAUSING MORE WORK FOR ME. WHY DON'T YOU GO PING THE MODERATORS INSTEAD, MAYBE THEY WILL BE MORE TOLERANT OF YOUR STUPID, #########, ######, IRRELEVANT ANTICS. GO WASTE SOMEONE ELSE'S TIME, YOU ######## ###### I HATE YOU AND EVERYTHING YOU ##### STAND FOR, ####### #####.")
+
+async def eightball(message):
+    responses = ["yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*"]
+    rand = random.randint(0, len(responses) - 1)
+    await message.channel.send(responses[rand])
 
 
 @tree.command(name="cstats",description="Get statistics for counting minigame", guild=discord.Object(id=GUILD_ID))
