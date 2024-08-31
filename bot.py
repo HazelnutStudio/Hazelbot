@@ -39,6 +39,10 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    
+    if isinstance(message.channel, discord.DMChannel): # tibble was here
+        return
+    
     await two.on_message(message, client.user)
     await starboard.on_message(message, client)
     await counting.on_message(message)
@@ -52,11 +56,19 @@ async def on_message(message):
 
 @client.event
 async def on_message_edit(before, after):
+    
+    if isinstance(before.channel, discord.DMChannel):
+        return
+    
     await two.on_message_edit(before, after, client)
     await counting.on_message_edit(before, after)
 
 @client.event
 async def on_raw_reaction_add(payload):
+    
+    if not payload.guild_id: # alternate way to detect dm channel
+        return
+    
     if await starboard.on_reaction(payload, client) == True:
         return
     await quotes.on_react(payload)
