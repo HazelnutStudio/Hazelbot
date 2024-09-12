@@ -9,6 +9,7 @@ import log
 from discord import app_commands
 import json
 import quotes
+import datetime
 
 GUILD_ID = 1232662729047801928
 HAZEL_ID = 494385406390042634
@@ -89,7 +90,9 @@ async def on_raw_reaction_add(payload):
 
 async def bot_interactions(message):
     #"hazelbot would you", "hazelbot could i", "hazelbot am i", "hazelbot "]
-    questions = ["are", "do", "did", "can", "should", "would you", "could i", "am i", "is"]
+    if message.author == client.user:
+        return
+    questions = ["are", "do", "did", "can", "should", "would you", "could i", "am i", "is", "will", "won't you", "would", "wouldn't"]
     if message.content.endswith("?"):
         for x in questions:
             if message.content.lower().startswith("hazelbot " + x):
@@ -100,25 +103,47 @@ async def bot_interactions(message):
         options = ["*sigh* bapanada.", "GESSOOOOOOOOOOO", "velmi artrid", "*sigh* apaul", "SHAW", "patamas geo", "DOMA DOMA!! DOMA DOMA DOMA!!!", "RAVA"]
         rand = random.randint(0,len(options) - 1)
         await message.channel.send(options[rand])
-    if "step 3" in message.content.lower():
+    elif "step 3" in message.content.lower():
         await message.channel.send("SQUISH")
-    if "~~hazelbot~~" in message.content.lower():
+    elif "~~hazelbot~~" in message.content.lower():
         await message.channel.send("WHAT THE ###### #### ####### IS WRONG WITH YOU?? YOU THINK YOU'RE FUNNY DO YOU? THINK YOU'RE ####### #### ###### FUNNY??? I'LL SHOW YOU WHAT F")
     elif "hazelbot" in message.content.lower():
-        options = ["did someone say my name?", "hey ;]", "hello!!", ":3", "SHUT THE ###### #### ##### ###"]
+        options = ["did someone say my name?", "hey ;]", "hello!!", ":3", "SHUT THE ###### #### ##### ###", "fine day innit?", "i think i've fallen in love with you", "thy shall suffer my wrath for proclaiming my name!", "haiii :3", "heyyyy", "i hate you.", "YOU MAKE EVEN THE DEVIL CRY", "i don't wanna talk rn..", "i'm about to go s*gma mode", "hi.", "hello", "greetings", "waow hi", "life has lost all meaning.", "^w^", "sorry i've been feeling a little upset lately and i don't really feel like talking :(", "shut up before i make you.", "hey", "haii how are you doing! ^^", "hai!!!", "yay! hi!", "ok.", "idc. shut up"]
         rand = random.randint(0, len(options) - 1)
         await message.channel.send(options[rand])
-    if "<@&1232671508191645726>" in message.content.lower(): # moderator ping
+    elif "<@&1232671508191645726>" in message.content.lower(): # moderator ping
         await message.channel.send("i'm better than them btw. you can just ping me instead :3")
-    if "<@1269130556386578524>" in message.content.lower(): # hazelbot ping
+    elif "<@1269130556386578524>" in message.content.lower(): # hazelbot ping
         await message.channel.send("WHAT IS YOUR PROBLEM. DO YOU NOT HAVE ANY RESPECT FOR OTHER PEOPLE?? WHY DO YOU THINK IT'S OKAY TO PING ME SO THAT I HAVE TO GO OUT OF MY WAY TO CHECK, JUST TO SEE YOUR STUPID, #######, #####, ########, PATHETIC, ####, UTTERLY USELESS MESSAGE. WHAT IS WRONG WITH YOU. MAYBE YOU SHOULD GO DO SOMETHING WITH YOUR LIFE, INSTEAD OF SITTING HERE ON YOUR SILLY LITTLE ######## ##### DEVICE, DOING NOTHING PRODUCTIVE, JUST CAUSING MORE WORK FOR ME. WHY DON'T YOU GO PING THE MODERATORS INSTEAD, MAYBE THEY WILL BE MORE TOLERANT OF YOUR STUPID, #########, ######, IRRELEVANT ANTICS. GO WASTE SOMEONE ELSE'S TIME, YOU ######## ###### I HATE YOU AND EVERYTHING YOU ##### STAND FOR, ####### #####.")
-    if message.content == ":3" and message.author != client.user:
+    elif message.content == ":3":
         await message.channel.send(":3")
+    elif "deez nuts" in message.content:
+        await message.author.timeout(datetime.timedelta(seconds=60))
+        await message.channel.send("no one will miss you when you're gone.")
+    elif "joe mama" in message.content:
+        await message.author.timeout(datetime.timedelta(seconds=60))
+        await message.channel.send("they won't find the body.")
+    elif "ligma balls" in message.content:
+        await message.author.timeout(datetime.timedelta(seconds=60))
+        await message.channel.send("wow. not cool dude.")
+    elif "deez" in message.content:
+        await message.channel.send("what's deez?")
+    elif "joe" in message.content:
+        await message.channel.send("who's joe?")
+    elif "ligma" in message.content:
+        await message.channel.send("what's ligma?")
+    
 
 async def eightball(message):
-    responses = ["yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*"]
-    rand = random.randint(0, len(responses) - 1)
-    await message.channel.send(responses[rand])
+    responses = ["yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc."]
+    # hardcoded responses
+    if message.content == "hazelbot do you like mr sexy?":
+        await message.channel.send("EWWWWW NO!!")
+    if message.content == "hazelbot do you like mr ugly?":
+        await message.channel.send("🤤")
+    else:
+        rand = random.randint(0, len(responses) - 1)
+        await message.channel.send(responses[rand])
 
 
 @tree.command(name="cstats",description="Get statistics for counting minigame", guild=discord.Object(id=GUILD_ID))
