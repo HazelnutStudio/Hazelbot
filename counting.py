@@ -89,7 +89,7 @@ async def on_message(message):
     if user_stats.get("highest_count", 0) <= number - 1:
         user_stats.update({"highest_count":number - 1,"highest_count_timestamp":f"{round(time.time())}"})
 
-    await message.add_reaction("✅")
+    await message.add_reaction(await get_message_reaction(number - 1))
 
     save_contents.update({f"st_user_{message.author.id}":user_stats})
 
@@ -154,3 +154,17 @@ async def clast(interaction):
         return
     else:
         await interaction.response.send_message(f"The most recent number was {number - 1}")
+
+# decides on whether or not there should be a special reaction for a message
+async def get_message_reaction(number):
+    if number % 100 == 0:
+        # if number is divisible by 100
+        return "💯"
+    if re.search("[0,1,3,4,5,6,7,8,9]", str(number)) is None:
+        # if number only contains 2s
+        return "2️⃣"
+    if number >= save_contents["st_highest_count"]:
+        return "☑️"
+
+    return "✅"
+
