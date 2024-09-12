@@ -11,6 +11,7 @@ import json
 import quotes
 
 GUILD_ID = 1232662729047801928
+HAZEL_ID = 494385406390042634
 
 load_dotenv()
 
@@ -42,6 +43,16 @@ async def on_message(message):
     
     if isinstance(message.channel, discord.DMChannel): # tibble was here
         return
+
+    if "hazelbot kys" in message.content:
+        hazel = await client.fetch_user(HAZEL_ID)
+        if message.author == hazel:
+            await message.channel.send("okay :(")
+            exit()
+        else:
+            await message.channel.send("no :)")
+        return
+
     
     await two.on_message(message, client.user)
     await starboard.on_message(message, client)
@@ -50,6 +61,9 @@ async def on_message(message):
     if message.author == client.user:
         if "## Quote Message" in message.content:
             await quotes.start_vote(message)
+    
+
+
 
 
     await bot_interactions(message) 
