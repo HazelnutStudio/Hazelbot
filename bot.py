@@ -139,7 +139,7 @@ async def eightball(message):
     # hardcoded responses
     if message.content == "hazelbot do you like mr sexy?":
         await message.channel.send("EWWWWW NO!!")
-    if message.content == "hazelbot do you like mr ugly?":
+    elif message.content == "hazelbot do you like mr ugly?":
         await message.channel.send("🤤")
     else:
         rand = random.randint(0, len(responses) - 1)
