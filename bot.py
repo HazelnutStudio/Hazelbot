@@ -101,7 +101,7 @@ async def bot_interactions(message):
 
     if "silksong" in message.content.lower():
         options = ["*sigh* bapanada.", "GESSOOOOOOOOOOO", "velmi artrid", "*sigh* apaul", "SHAW", "patamas geo", "DOMA DOMA!! DOMA DOMA DOMA!!!", "RAVA"]
-        rand = random.randint(0,len(options) - 1)
+        rand = random.SystemRandom().randint(0,len(options) - 1)
         await message.channel.send(options[rand])
     elif "step 3" in message.content.lower():
         await message.channel.send("SQUISH")
@@ -109,10 +109,8 @@ async def bot_interactions(message):
         await message.channel.send("WHAT THE ###### #### ####### IS WRONG WITH YOU?? YOU THINK YOU'RE FUNNY DO YOU? THINK YOU'RE ####### #### ###### FUNNY??? I'LL SHOW YOU WHAT F")
     elif "hazelbot" in message.content.lower():
         options = ["did someone say my name?", "hey ;]", "hello!!", ":3", "SHUT THE ###### #### ##### ###", "fine day innit?", "i think i've fallen in love with you", "thy shall suffer my wrath for proclaiming my name!", "haiii :3", "heyyyy", "i hate you.", "YOU MAKE EVEN THE DEVIL CRY", "i don't wanna talk rn..", "i'm about to go s*gma mode", "hi.", "hello", "greetings", "waow hi", "life has lost all meaning.", "^w^", "sorry i've been feeling a little upset lately and i don't really feel like talking :(", "shut up before i make you.", "hey", "haii how are you doing! ^^", "hai!!!", "yay! hi!", "ok.", "idc. shut up", "https://cdn.discordapp.com/attachments/1277125825447202816/1284132299150987274/IMG_9972.jpg?ex=66e584e6&is=66e43366&hm=d33b7f0e73eb89aeab7500018c15624d1213f9f8bf1e4f36d4fe012531893e6f&", "ok but did you hear about the rizzler"]
-        rand = random.randint(0, len(options) - 1)
+        rand = random.SystemRandom().randint(0, len(options) - 1)
         await message.channel.send(options[rand])
-    elif "<@&1232671508191645726>" in message.content.lower(): # moderator ping
-        await message.channel.send("i'm better than them btw. you can just ping me instead :3")
     elif "<@1269130556386578524>" in message.content.lower(): # hazelbot ping
         await message.channel.send("WHAT IS YOUR PROBLEM. DO YOU NOT HAVE ANY RESPECT FOR OTHER PEOPLE?? WHY DO YOU THINK IT'S OKAY TO PING ME SO THAT I HAVE TO GO OUT OF MY WAY TO CHECK, JUST TO SEE YOUR STUPID, #######, #####, ########, PATHETIC, ####, UTTERLY USELESS MESSAGE. WHAT IS WRONG WITH YOU. MAYBE YOU SHOULD GO DO SOMETHING WITH YOUR LIFE, INSTEAD OF SITTING HERE ON YOUR SILLY LITTLE ######## ##### DEVICE, DOING NOTHING PRODUCTIVE, JUST CAUSING MORE WORK FOR ME. WHY DON'T YOU GO PING THE MODERATORS INSTEAD, MAYBE THEY WILL BE MORE TOLERANT OF YOUR STUPID, #########, ######, IRRELEVANT ANTICS. GO WASTE SOMEONE ELSE'S TIME, YOU ######## ###### I HATE YOU AND EVERYTHING YOU ##### STAND FOR, ####### #####.")
     elif message.content == ":3":
@@ -144,7 +142,7 @@ async def eightball(message):
     elif message.content == "hazelbot do you like mr ugly?":
         await message.channel.send("🤤")
     else:
-        rand = random.randint(0, len(responses) - 1)
+        rand = random.SystemRandom().randint(0, len(responses) - 1)
         await message.channel.send(responses[rand])
 
 

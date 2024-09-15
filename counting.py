@@ -140,12 +140,12 @@ async def get_savefile():
 async def clast(interaction):
     global evil
     global evil_number
-    if random.random() < 0.2:
+    if random.SystemRandom().random() < 0.2:
         await log.info("evil hazelbot activated >:3")
         evil = True
-        rand = random.randint(-5, 5)
+        rand = random.SystemRandom().randint(-5, 5)
         if rand == 0:
-            rand = random.randint(-10000, 10000)
+            rand = random.SystemRandom().randint(-10000, 10000)
         if rand == 0:
             await interaction.response.send_message("sorry loser. i just won the lottery. bye .")
             return
