@@ -137,9 +137,9 @@ async def bot_interactions(message):
 async def eightball(message):
     responses = ["yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc."]
     # hardcoded responses
-    if message.content == "hazelbot do you like mr sexy?":
+    if message.content == "hazelbot do you like mr ugly?":
         await message.channel.send("EWWWWW NO!!")
-    elif message.content == "hazelbot do you like mr ugly?":
+    elif message.content == "hazelbot do you like mr sexy?":
         await message.channel.send("🤤")
     else:
         rand = random.SystemRandom().randint(0, len(responses) - 1)
