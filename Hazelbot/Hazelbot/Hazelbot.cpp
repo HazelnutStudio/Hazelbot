@@ -21,12 +21,12 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 };
 
 int main(int argc, char* argv[]) {
-	if (argc != 1) {
+	if (argc != 2) {
 		std::cout << "please include the bot token as a launch argument :3";
 		return 0;
 	}
 
-	dpp::cluster bot(argv[0], dpp::i_default_intents | dpp::i_message_content);
+	dpp::cluster bot(argv[1], dpp::i_default_intents | dpp::i_message_content);
 
 	bot.on_log(dpp::utility::cout_logger());
 
