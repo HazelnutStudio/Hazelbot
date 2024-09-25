@@ -1,8 +1,9 @@
-#include <dpp/dpp.h>
+﻿#include <dpp/dpp.h>
 #include "StringUtils.h"
 #include "ConfigParser.h"
 
-const std::string v = "11";
+const std::string v = "12";
+std::string channel2id;
 
 void eightball(const dpp::message_create_t& event) {
 	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&"};
@@ -93,9 +94,33 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 	}
 };
 
+bool two_filter(dpp::cluster& bot, const dpp::message_create_t& event) {
+	std::string channel_id = std::to_string(event.msg.channel_id);
+	if (channel_id != channel2id) {
+		// message was sent outside of #2, so it should be ignored
+		return false;
+	}
+	
+	if (event.msg.author == bot.me) {
+		// message was sent by bot, so it should be ignored
+		return false;
+	}
+
+	if (event.msg.content.find("2") != std::string::npos) {
+		return false;
+	}
+
+	if (event.msg.content.find("two") != std::string::npos) {
+		return false;
+	}
+
+	return true;
+}
+
 int main() {
 	ConfigParser::initialize_configuration();
 	std::string token = ConfigParser::get_string("token", "");
+	channel2id = ConfigParser::get_string("2_id", "0");
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
@@ -106,10 +131,14 @@ int main() {
 	// Message recieved
 	bot.on_message_create([&bot](const dpp::message_create_t& event) {
 		text_interactions(bot, event);
+		if (two_filter(bot, event)) {
+			bot.message_delete(event.msg.id, event.msg.channel_id);
+		}
 		});
 
 	std::cout << "running version " + v + "\n";
 	bot.start(dpp::st_wait);
+
 
 	return 0;
 }
