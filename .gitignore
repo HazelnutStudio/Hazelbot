@@ -1,8 +1,8 @@
 
 /DPP
-/Hazelbot/Hazelbot/x64
-/Hazelbot/x64
-/Hazelbot/.vs
-Hazelbot/Hazelbot/Hazelbot.vcxproj
-Hazelbot/Hazelbot/Hazelbot.vcxproj.filters
-Hazelbot/Hazelbot/Hazelbot.vcxproj.user
+Hazelbot/x64
+x64
+.vs
+Hazelbot/Hazelbot.vcxproj
+Hazelbot/Hazelbot.vcxproj.filters
+Hazelbot/Hazelbot.vcxproj.user
