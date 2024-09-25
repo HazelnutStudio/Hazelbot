@@ -1,0 +1,50 @@
+#include "ConfigParser.h"
+
+static std::map<std::string, std::string> config;
+
+int ConfigParser::get_wordcount() {
+	return 0;
+}
+
+void ConfigParser::initialize_configuration() {
+	// convert file to string
+	std::ifstream file("hazelbot.cfg");
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+
+	// parse string
+
+	// split string at semicolon
+	std::vector<std::string> tokens = StringUtils::split_string_on_nl(buffer.str());
+
+	config = {};
+
+	for (size_t i = 0; i < tokens.size(); i++)
+	{
+		// splits string into key and value
+		std::vector<std::string> t = StringUtils::split_string(tokens[i], '=');
+
+		config.insert({t[0], t[1]});
+	}
+}
+
+std::string ConfigParser::get_string(std::string key) {
+	return config[key];
+}
+
+int ConfigParser::get_integer(std::string key) {
+	return std::stoi(config[key]);
+}
+
+bool ConfigParser::get_boolean(std::string key) {
+	std::string value = config[key];
+	if (StringUtils::to_lower(value) == "true") {
+		return true;
+	}
+	else if (StringUtils::to_lower(value) == "false") {
+		return false;
+	}
+
+	std::cout << "Warning: failed to parse \"" << key << "\" as boolean. Value assumed to be false.";
+	return false;
+}

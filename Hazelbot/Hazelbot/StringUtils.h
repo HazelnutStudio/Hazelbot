@@ -8,6 +8,8 @@ public:
 	static std::string to_lower(std::string str);
 	static bool ends_with(std::string str, std::string ending);
 	static bool starts_with(std::string str, std::string start);
+	static std::vector<std::string> split_string(std::string str, char delimiter);
+	static std::vector<std::string> split_string_on_nl(std::string str);
 };
 
 #endif

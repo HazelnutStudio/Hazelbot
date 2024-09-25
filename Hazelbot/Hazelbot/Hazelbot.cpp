@@ -1,5 +1,6 @@
 #include <dpp/dpp.h>
 #include "StringUtils.h"
+#include "ConfigParser.h"
 
 const std::string v = "8";
 
@@ -80,15 +81,18 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 	else if (StringUtils::to_lower(event.msg.content).find("cabbit") != std::string::npos) {
 		event.reply("https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&");
 	}
+
+	// debug
+	if (StringUtils::to_lower(event.msg.content).find("config") != std::string::npos) {
+		event.reply(ConfigParser::get_string("sigma"));
+	}
 };
 
-int main(int argc, char* argv[]) {
-	if (argc != 2) {
-		std::cout << "please include the bot token as a launch argument :3";
-		return 0;
-	}
+int main() {
+	ConfigParser::initialize_configuration();
+	std::string token = ConfigParser::get_string("token");
 
-	dpp::cluster bot(argv[1], dpp::i_default_intents | dpp::i_message_content);
+	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
 	bot.on_log(dpp::utility::cout_logger());
 
