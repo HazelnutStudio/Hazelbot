@@ -6,7 +6,7 @@ const std::string v = "12";
 std::string channel2id;
 
 void eightball(const dpp::message_create_t& event) {
-	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&"};
+	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&", "haha! look at this loser! doesn't know {event.msg.content}!!""yes <3", "no <3", "go ask someone else idk", "idk man, google it or something" };
 
 	int r = std::rand() % responses.size();
 	event.reply(responses[r]);
@@ -58,7 +58,7 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 	// response "silksong"
 	if (StringUtils::to_lower(event.msg.content).find("silksong") != std::string::npos) {
 		// possible responses
-		const std::vector<std::string> responses = { "*sigh* bapanada.", "GESSOOOOOOOOOOO", "velmi artrid", "*sigh* apaul", "SHAW", "patamas geo", "DOMA DOMA!! DOMA DOMA DOMA!!!", "RAVA", "yes <3", "no <3", "go ask someone else idk", "idk man, google it or something", "haha! look at this loser! doesn't know {event.msg.content}!!"};
+		const std::vector<std::string> responses = { "*sigh* bapanada.", "GESSOOOOOOOOOOO", "velmi artrid", "*sigh* apaul", "SHAW", "patamas geo", "DOMA DOMA!! DOMA DOMA DOMA!!!", "RAVA"};
 		int r = std::rand() % responses.size();
 		event.reply(responses[r]);
 	}
