@@ -2,8 +2,35 @@
 #include "StringUtils.h"
 #include "ConfigParser.h"
 
-const std::string v = "12";
+const std::string v = "14";
 std::string channel2id;
+
+struct quote_message_info {
+private:
+	std::string channel_id;
+	std::string guild_id;
+	std::string quoted_message;
+public:
+	quote_message_info(std::string _channel_id, std::string _guild_id, std::string _quoted_message) {
+		channel_id = _channel_id;
+		guild_id = _guild_id;
+		quoted_message = _quoted_message;
+	}
+
+	std::string get_channel_id() {
+		return channel_id;
+	}
+
+	std::string get_guild_id() {
+		return guild_id;
+	}
+
+	std::string get_quoted_message_id() {
+		return quoted_message;
+	}
+};
+
+std::map<std::string, quote_message_info> active_quote_votes;
 
 void eightball(const dpp::message_create_t& event) {
 	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&", "haha! look at this loser! doesn't know {event.msg.content}!!""yes <3", "no <3", "go ask someone else idk", "idk man, google it or something" };
@@ -117,6 +144,62 @@ bool two_filter(dpp::cluster& bot, const dpp::message_create_t& event) {
 	return true;
 }
 
+dpp::reaction get_quote_reaction_emoji() {
+	dpp::reaction reaction = dpp::reaction();
+	
+	// getting reaction by id first
+	std::string reaction_emoji_id = ConfigParser::get_string("quote_reaction_emoji_id", "");
+	if (reaction_emoji_id != "") {
+		reaction.emoji_id = reaction_emoji_id;
+	}
+	else {
+		// if id fails, try get name
+		std::string reaction_emoji_name = ConfigParser::get_string("quote_reaction_emoji_name", "");
+		if (reaction_emoji_name != "") {
+			reaction.emoji_name = reaction_emoji_name;
+		}
+		else {
+			// no reaction emoji was specified in the config, so a default will be chosen
+			reaction_emoji_name = "star";
+			reaction.emoji_name = reaction_emoji_name;
+		}
+	}
+
+	return reaction;
+}
+
+std::string get_quote_reaction_emoji_raw() {
+	return ":" + ConfigParser::get_string("quote_reaction_emoji_name", "star") + ":" + ConfigParser::get_string("quote_reaction_emoji_id", "");
+}
+
+void callback_quote_response_send_success(const dpp::confirmation_callback_t& callback, const dpp::message_context_menu_t& event) {
+	if (callback.is_error()) {
+		std::cout << "uh oh.." << std::endl;
+		return;
+	}
+	dpp::message context = event.ctx_message;
+
+	dpp::message data = callback.get<dpp::message>();
+	quote_message_info info(std::to_string(data.channel_id), std::to_string(data.guild_id), std::to_string(context.id));
+
+	// get reaction emoji
+
+	// you can't call message_add_reaction from a constant reference to the cluster, so we have this weird thingy instead.
+	// idk what it does, and it probably won't work, but if you're reading this that means it did
+	event.from->creator->message_add_reaction(data.id, data.channel_id, get_quote_reaction_emoji_raw());
+	
+
+	active_quote_votes.insert({ std::to_string(data.id), info });
+}
+
+void appcmd_quote(dpp::cluster& bot, const dpp::message_context_menu_t& event) {
+	std::string response = "<@" + std::to_string(event.command.get_issuing_user().id) + "> wants to quote a message! React with <" + get_quote_reaction_emoji_raw() + "> to vote!";
+	event.reply(response);
+	// callback with information on the message just sent, used to add this to the list of active quote votes
+	std::function<void(dpp::confirmation_callback_t)> callback = std::bind(callback_quote_response_send_success, std::placeholders::_1, event);
+	event.get_original_response(dpp::command_completion_event_t(callback));
+}
+
 int main() {
 	ConfigParser::initialize_configuration();
 	std::string token = ConfigParser::get_string("token", "");
@@ -126,7 +209,36 @@ int main() {
 
 	bot.on_log(dpp::utility::cout_logger());
 
+	bot.on_ready([&bot](const dpp::ready_t& event) {
+		// initialize commands
 
+
+		// quote
+		dpp::slashcommand quote_command;
+		quote_command.set_type(dpp::ctxm_message)
+			.set_name("Quote")
+			.set_description("Starts a quote vote with the selected message")
+			.set_application_id(bot.me.id);
+
+		if (ConfigParser::does_key_exist("guild_id")) {
+			std::string guild_id = ConfigParser::get_string("guild_id", "0");
+
+			bot.guild_command_create(quote_command, guild_id);
+		}
+		else {
+			std::cout << "No guild ID specified in hazelbot.cfg, registering all commands as public (this can take a while to sync, so it is recommended to set a guild id)" << std::endl;
+
+			bot.global_command_create(quote_command);
+		}
+		
+	});
+
+	bot.on_message_context_menu([&bot](const dpp::message_context_menu_t& event) {
+		if (event.command.type == dpp::it_application_command) {
+			//dpp::command_interaction cmd = std::get<dpp::command_interaction>(event.command.data);
+			if (event.command.get_command_name() == "Quote") appcmd_quote(bot, event);
+		}
+	});
 
 	// Message recieved
 	bot.on_message_create([&bot](const dpp::message_create_t& event) {
@@ -134,7 +246,7 @@ int main() {
 		if (two_filter(bot, event)) {
 			bot.message_delete(event.msg.id, event.msg.channel_id);
 		}
-		});
+	});
 
 	std::cout << "running version " + v + "\n";
 	bot.start(dpp::st_wait);
