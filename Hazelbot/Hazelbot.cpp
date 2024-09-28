@@ -7,18 +7,12 @@ std::string channel2id;
 
 struct quote_message_info {
 private:
-	std::string channel_id;
 	std::string guild_id;
 	std::string quoted_message;
 public:
-	quote_message_info(std::string _channel_id, std::string _guild_id, std::string _quoted_message) {
-		channel_id = _channel_id;
+	quote_message_info(std::string _guild_id, std::string _quoted_message) {
 		guild_id = _guild_id;
 		quoted_message = _quoted_message;
-	}
-
-	std::string get_channel_id() {
-		return channel_id;
 	}
 
 	std::string get_guild_id() {
@@ -144,32 +138,50 @@ bool two_filter(dpp::cluster& bot, const dpp::message_create_t& event) {
 	return true;
 }
 
-dpp::reaction get_quote_reaction_emoji() {
-	dpp::reaction reaction = dpp::reaction();
-	
-	// getting reaction by id first
-	std::string reaction_emoji_id = ConfigParser::get_string("quote_reaction_emoji_id", "");
-	if (reaction_emoji_id != "") {
-		reaction.emoji_id = reaction_emoji_id;
+bool is_quote_message(dpp::snowflake channel_id, dpp::snowflake message_id) {
+	std::string channel_msg_id = channel_id + "." + message_id;
+	if (active_quote_votes.count(channel_msg_id)) {
+		// a key exists for the channel, message id pair
+		// therefore the given message is a quote message
+		return true;
 	}
-	else {
-		// if id fails, try get name
-		std::string reaction_emoji_name = ConfigParser::get_string("quote_reaction_emoji_name", "");
-		if (reaction_emoji_name != "") {
-			reaction.emoji_name = reaction_emoji_name;
-		}
-		else {
-			// no reaction emoji was specified in the config, so a default will be chosen
-			reaction_emoji_name = "star";
-			reaction.emoji_name = reaction_emoji_name;
-		}
-	}
-
-	return reaction;
+	return false;
 }
 
-std::string get_quote_reaction_emoji_raw() {
-	return ":" + ConfigParser::get_string("quote_reaction_emoji_name", "star") + ":" + ConfigParser::get_string("quote_reaction_emoji_id", "");
+std::string get_quote_reaction_emoji(bool inText = false) {
+	// discord's emoji system is kinda a mess, so we have to account for multiple cases here
+	// first of all, default emojis all just use their unicode character
+	// when writing them in code though (for the default star emoji)
+	// on windows only (i think) you have to use the u8 string literal otherwise it just doesn't work
+	// this is only necessary in code, if you specify the emoji from the config file it works fine
+	
+	// custom emojis are in the format name:id, so we need another entry in the config file for custom emojis
+	// if an emoji is to be used in text, you are required to use angled brackets around the emoji
+	// (unless it's a default emoji, then you can't put angled brackets around it)
+	// if the emoji is to be used for a reaction, you also can't use angled brackets
+	// so yeah.. kinda a mess but
+
+	std::string reaction_emoji_id = ConfigParser::get_string("quote_reaction_emoji_id", "");
+	std::string reaction_emoji_name = ConfigParser::get_string("quote_reaction_emoji_name", "");
+
+	if (reaction_emoji_name == "") {
+		// no emoji given, get default instead
+		return u8"⭐";
+	}
+
+	if (reaction_emoji_id == "") {
+		// no emoji id given, emoji is probably a default emoji
+		return reaction_emoji_name;
+	}
+
+
+	std::string emoji_raw = reaction_emoji_name + ":" + reaction_emoji_id;
+	if (inText) {
+		return "<:" + emoji_raw + ">";
+	}
+	else {
+		return emoji_raw;
+	}
 }
 
 void callback_quote_response_send_success(const dpp::confirmation_callback_t& callback, const dpp::message_context_menu_t& event) {
@@ -180,20 +192,19 @@ void callback_quote_response_send_success(const dpp::confirmation_callback_t& ca
 	dpp::message context = event.ctx_message;
 
 	dpp::message data = callback.get<dpp::message>();
-	quote_message_info info(std::to_string(data.channel_id), std::to_string(data.guild_id), std::to_string(context.id));
+	quote_message_info info(std::to_string(data.guild_id), std::to_string(context.id));
 
-	// get reaction emoji
-
+	// add reaction emoji
 	// you can't call message_add_reaction from a constant reference to the cluster, so we have this weird thingy instead.
 	// idk what it does, and it probably won't work, but if you're reading this that means it did
-	event.from->creator->message_add_reaction(data.id, data.channel_id, get_quote_reaction_emoji_raw());
+	event.from->creator->message_add_reaction(data.id, data.channel_id, get_quote_reaction_emoji());
 	
 
-	active_quote_votes.insert({ std::to_string(data.id), info });
+	active_quote_votes.insert({ std::to_string(data.id) + "." + std::to_string(data.channel_id), info});
 }
 
 void appcmd_quote(dpp::cluster& bot, const dpp::message_context_menu_t& event) {
-	std::string response = "<@" + std::to_string(event.command.get_issuing_user().id) + "> wants to quote a message! React with <" + get_quote_reaction_emoji_raw() + "> to vote!";
+	std::string response = "<@" + std::to_string(event.command.get_issuing_user().id) + "> wants to quote a message! React with " + get_quote_reaction_emoji(true) + " to vote!";
 	event.reply(response);
 	// callback with information on the message just sent, used to add this to the list of active quote votes
 	std::function<void(dpp::confirmation_callback_t)> callback = std::bind(callback_quote_response_send_success, std::placeholders::_1, event);
