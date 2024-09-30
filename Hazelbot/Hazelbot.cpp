@@ -9,10 +9,24 @@ struct quote_message_info {
 private:
 	std::string guild_id;
 	std::string quoted_message;
+	dpp::snowflake quoted_message_author;
+	std::string quoted_message_content;
+	std::time_t quoted_message_sent;
+
 public:
-	quote_message_info(std::string _guild_id, std::string _quoted_message) {
+	quote_message_info(std::string _guild_id, std::string _quoted_message, dpp::snowflake _quoted_message_author, std::string _quoted_message_content, std::time_t _quoted_message_sent) {
 		guild_id = _guild_id;
 		quoted_message = _quoted_message;
+		quoted_message_author = _quoted_message_author;
+		quoted_message_content = _quoted_message_content;
+		quoted_message_sent = _quoted_message_sent;
+	}
+	quote_message_info() {
+		guild_id = "0";
+		quoted_message = "0";
+		quoted_message_author = "0";
+		quoted_message_content = ":3";
+		quoted_message_sent = 0;
 	}
 
 	std::string get_guild_id() {
@@ -22,9 +36,25 @@ public:
 	std::string get_quoted_message_id() {
 		return quoted_message;
 	}
+
+	std::string get_quoted_message_content() {
+		return quoted_message_content;
+	}
+
+	std::time_t get_quoted_message_sent() {
+		std::cout << "ahhhhhhhhh" << std::endl;
+		return quoted_message_sent;
+	}
+
+	dpp::snowflake get_quoted_message_author_id() {
+		return quoted_message_author;
+	}
 };
 
 std::map<std::string, quote_message_info> active_quote_votes;
+std::string quotes_saveto_channel_id;
+int quote_votes_required;
+
 
 void eightball(const dpp::message_create_t& event) {
 	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&", "haha! look at this loser! doesn't know {event.msg.content}!!""yes <3", "no <3", "go ask someone else idk", "idk man, google it or something" };
@@ -138,23 +168,13 @@ bool two_filter(dpp::cluster& bot, const dpp::message_create_t& event) {
 	return true;
 }
 
-bool is_quote_message(dpp::snowflake channel_id, dpp::snowflake message_id) {
-	std::string channel_msg_id = channel_id + "." + message_id;
-	if (active_quote_votes.count(channel_msg_id)) {
-		// a key exists for the channel, message id pair
-		// therefore the given message is a quote message
-		return true;
-	}
-	return false;
-}
-
 std::string get_quote_reaction_emoji(bool inText = false) {
 	// discord's emoji system is kinda a mess, so we have to account for multiple cases here
 	// first of all, default emojis all just use their unicode character
 	// when writing them in code though (for the default star emoji)
 	// on windows only (i think) you have to use the u8 string literal otherwise it just doesn't work
 	// this is only necessary in code, if you specify the emoji from the config file it works fine
-	
+
 	// custom emojis are in the format name:id, so we need another entry in the config file for custom emojis
 	// if an emoji is to be used in text, you are required to use angled brackets around the emoji
 	// (unless it's a default emoji, then you can't put angled brackets around it)
@@ -184,6 +204,75 @@ std::string get_quote_reaction_emoji(bool inText = false) {
 	}
 }
 
+bool is_quote_message(dpp::snowflake channel_id, dpp::snowflake message_id) {
+	std::string channel_msg_id = channel_id.str() + "." + message_id.str();
+	if (active_quote_votes.count(channel_msg_id)) {
+		// a key exists for the channel, message id pair
+		// therefore the given message is a quote message
+		return true;
+	}
+	return false;
+}
+
+//const std::string quotes_saveto_guild_id = ConfigParser::get_string("guild_id", "");
+
+void add_quote_message(quote_message_info& message, dpp::cluster* bot) {
+	// called when a quote message has reached enough votes to be added to the quotes channel
+
+	// idk why it makes me do this in multiple lines
+	std::string content = "> " + message.get_quoted_message_content() + "\n \\- <@";
+	content += message.get_quoted_message_author_id().str() + ">, <t:" + std::to_string(message.get_quoted_message_sent()) + ":f>";
+
+	dpp::message m;
+	m.content = content;
+	m.channel_id = quotes_saveto_channel_id;
+	bot->message_create(m);
+}
+
+void on_quote_message_reaction_add_message_get_callback(const dpp::confirmation_callback_t callback, const dpp::message_reaction_add_t& event) {
+	if (callback.is_error()) {
+		std::cout << "uh oh!!!! on_quote_message_reaction_add_message_get_callback" << std::endl;
+		return;
+	}
+
+	dpp::message message = callback.get<dpp::message>();
+	dpp::reaction reaction;
+	// search message for correct reaction
+	// also extremely yucky nest here but i'm not gonna do anything about it :3
+	for (size_t i = 0; i < message.reactions.size(); i++)
+	{
+		dpp::reaction r = message.reactions[i];
+		if (r.emoji_name == event.reacting_emoji.name) {
+			if (r.emoji_id == event.reacting_emoji.id) {
+				reaction = r;
+				break;
+			}
+		}
+	}
+
+	if (reaction.count_normal - 1 >= quote_votes_required) {
+		// message has reached number of votes required
+		// find message in active_quote_votes
+		quote_message_info& info = active_quote_votes[message.channel_id.str() + "." + message.id.str()];
+		add_quote_message(info, event.from->creator);
+	}
+
+}
+
+void on_quote_message_reaction_add(const dpp::cluster& bot, const dpp::message_reaction_add_t& event) {
+	// called when a reaction is added to a quote message
+
+	// making sure it was the right reaction
+	if (event.reacting_emoji.format() != get_quote_reaction_emoji()) {
+		std::cout << "wrong emoji!" << std::endl;
+		return;
+	}
+
+	// i hate that i have to do this.. this sucks
+	dpp::command_completion_event_t callback = std::bind(on_quote_message_reaction_add_message_get_callback, std::placeholders::_1, event);
+	event.from->creator->message_get(event.message_id, event.channel_id, callback);
+}
+
 void callback_quote_response_send_success(const dpp::confirmation_callback_t& callback, const dpp::message_context_menu_t& event) {
 	if (callback.is_error()) {
 		std::cout << "uh oh.." << std::endl;
@@ -192,15 +281,15 @@ void callback_quote_response_send_success(const dpp::confirmation_callback_t& ca
 	dpp::message context = event.ctx_message;
 
 	dpp::message data = callback.get<dpp::message>();
-	quote_message_info info(std::to_string(data.guild_id), std::to_string(context.id));
+	quote_message_info info(std::to_string(data.guild_id), std::to_string(context.id), context.author.id, context.content, context.sent);
 
 	// add reaction emoji
 	// you can't call message_add_reaction from a constant reference to the cluster, so we have this weird thingy instead.
 	// idk what it does, and it probably won't work, but if you're reading this that means it did
 	event.from->creator->message_add_reaction(data.id, data.channel_id, get_quote_reaction_emoji());
 	
-
-	active_quote_votes.insert({ std::to_string(data.id) + "." + std::to_string(data.channel_id), info});
+	std::string id = data.channel_id.str() + "." + data.id.str();
+	active_quote_votes.insert({ id, info});
 }
 
 void appcmd_quote(dpp::cluster& bot, const dpp::message_context_menu_t& event) {
@@ -215,6 +304,8 @@ int main() {
 	ConfigParser::initialize_configuration();
 	std::string token = ConfigParser::get_string("token", "");
 	channel2id = ConfigParser::get_string("2_id", "0");
+	quotes_saveto_channel_id = ConfigParser::get_string("quotes_channel_id", "");
+	quote_votes_required = ConfigParser::get_integer("quote_votes_required", 1);
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
@@ -244,6 +335,8 @@ int main() {
 		
 	});
 
+	
+
 	bot.on_message_context_menu([&bot](const dpp::message_context_menu_t& event) {
 		if (event.command.type == dpp::it_application_command) {
 			//dpp::command_interaction cmd = std::get<dpp::command_interaction>(event.command.data);
@@ -256,6 +349,14 @@ int main() {
 		text_interactions(bot, event);
 		if (two_filter(bot, event)) {
 			bot.message_delete(event.msg.id, event.msg.channel_id);
+		}
+	});
+
+	bot.on_message_reaction_add([&bot](const dpp::message_reaction_add_t& event) {
+		std::cout << "holy sitma!" << std::endl;
+		if (is_quote_message(event.channel_id, event.message_id)) {
+			std::cout << "h" << std::endl;
+			on_quote_message_reaction_add(bot, event);
 		}
 	});
 
