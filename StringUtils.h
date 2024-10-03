@@ -3,7 +3,7 @@
 #ifndef STRING_UTILS_H
 #define STRING_UTILS_H
 
-static class StringUtils {
+class StringUtils {
 public:
 	static std::string to_lower(std::string str);
 	static bool ends_with(std::string str, std::string ending);

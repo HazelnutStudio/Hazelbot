@@ -6,7 +6,7 @@
 #define CONFIG_PARSER_H
 
 
-static class ConfigParser {
+class ConfigParser {
 public:
 	static int get_wordcount();
 	static void initialize_configuration();

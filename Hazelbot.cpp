@@ -57,7 +57,7 @@ int quote_votes_required;
 
 
 void eightball(const dpp::message_create_t& event) {
-	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&", "haha! look at this loser! doesn't know {event.msg.content}!!""yes <3", "no <3", "go ask someone else idk", "idk man, google it or something" };
+	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&", "haha! look at this loser! doesn't know {event.msg.content}!!", "yes <3", "no <3", "go ask someone else idk", "idk man, google it or something" };
 
 	int r = std::rand() % responses.size();
 	event.reply(responses[r]);
@@ -174,6 +174,7 @@ std::string get_quote_reaction_emoji(bool inText = false) {
 	// when writing them in code though (for the default star emoji)
 	// on windows only (i think) you have to use the u8 string literal otherwise it just doesn't work
 	// this is only necessary in code, if you specify the emoji from the config file it works fine
+  // i don't use windows anymore!!!! (still keeping the string literal here though for anyone who does)
 
 	// custom emojis are in the format name:id, so we need another entry in the config file for custom emojis
 	// if an emoji is to be used in text, you are required to use angled brackets around the emoji
@@ -353,9 +354,7 @@ int main() {
 	});
 
 	bot.on_message_reaction_add([&bot](const dpp::message_reaction_add_t& event) {
-		std::cout << "holy sitma!" << std::endl;
 		if (is_quote_message(event.channel_id, event.message_id)) {
-			std::cout << "h" << std::endl;
 			on_quote_message_reaction_add(bot, event);
 		}
 	});
