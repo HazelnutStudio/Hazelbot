@@ -8,7 +8,7 @@ int ConfigParser::get_wordcount() {
 
 void ConfigParser::initialize_configuration() {
 	// convert file to string
-	std::ifstream file("hazelbot.cfg");
+	std::ifstream file("config/hazelbot.cfg");
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 
