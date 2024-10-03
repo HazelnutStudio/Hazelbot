@@ -1,4 +1,6 @@
 ﻿#include <dpp/dpp.h>
+#include <fstream>
+#include <sstream>
 #include "StringUtils.h"
 #include "ConfigParser.h"
 
@@ -55,12 +57,55 @@ std::map<std::string, quote_message_info> active_quote_votes;
 std::string quotes_saveto_channel_id;
 int quote_votes_required;
 
+std::map<std::string, std::vector<std::string>> bot_responses;
 
-void eightball(const dpp::message_create_t& event) {
-	std::vector<std::string> responses = { "yes :(", "yes!!", "maayyyybe :p", "idk :3", "no :)", "no!!", "NO. SHUT UP. I HATE YOU STOP ASKING ME QU", "thanks for the question ^-^", "blehhh :p", "idk but check this out:\n*does a really sick backflip*", "Perchance.", "yeah a little bit", "i don't really think so", "i think the answer would be yes if you would SHUT UP FOR ONCE IN YOUR PATHETIC LITTLE ###### #### LIFE.", "yeah", "yes", "yes", "yay!! yes!!", "absolutely not.", "nah.", "ok. idc.", "erm, what the sigma", "https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&", "haha! look at this loser! doesn't know {event.msg.content}!!", "yes <3", "no <3", "go ask someone else idk", "idk man, google it or something" };
+std::vector<std::string> parse_responses_from_file(std::string path){
+  std::ifstream file(path);
+  std::stringstream buffer;
 
-	int r = std::rand() % responses.size();
-	event.reply(responses[r]);
+  buffer << file.rdbuf();
+
+  std::vector<std::string> tokens = StringUtils::split_string_on_nl(buffer.str());
+
+  return tokens;
+}
+
+std::vector<std::string> get_response_files(){
+  std::string path = "config/response";
+  std::vector<std::string> files;
+  for(const auto & entry : std::filesystem::directory_iterator(path)){
+    std::cout << "found file " << entry.path() << std::endl;
+    files.push_back(entry.path());
+  }
+
+  return files;
+}
+
+std::map<std::string, std::vector<std::string>> parse_responses_from_files(){
+  std::vector<std::string> files = get_response_files();
+  std::map<std::string, std::vector<std::string>> result;
+  for (int i=0; i < files.size(); i++) {
+    std::string path = files[i];
+    
+    // gets the name of the file without the extension
+    std::string filename = path.substr(path.find_last_of("/\\") + 1);
+    std::string::size_type const p(filename.find_last_of('.'));
+    std::string response_id = filename.substr(0, p);
+
+    std::vector responses = parse_responses_from_file(path);
+    result.insert({response_id, responses});
+  }
+  return result;
+}
+
+
+std::string get_response(std::string response_id){
+  // picks a random response for response_id from the corresponding file
+  std::vector<std::string> possible_responses = bot_responses[response_id];
+
+  int r = std::rand() % possible_responses.size();
+
+  return possible_responses[r];
 }
 
 void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
@@ -75,12 +120,12 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 		for (size_t i = 0; i < question_startings.size(); i++)
 		{
 			if (StringUtils::starts_with(StringUtils::to_lower(event.msg.content), "hazelbot, " + question_startings[i])) {
-				eightball(event);
-				return;
+				event.reply(get_response("eightball"));
+        return;
 			}
 
 			if (StringUtils::starts_with(StringUtils::to_lower(event.msg.content), "hazelbot " + question_startings[i])) {
-				eightball(event);
+				event.reply(get_response("eightball"));
 				return;
 			}
 		}
@@ -88,7 +133,7 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 
 	// response - hazelbot (strikethrough)
 	if (StringUtils::to_lower(event.msg.content).find("~~hazelbot~~") != std::string::npos) {
-		event.reply("WHAT THE ###### #### ####### IS WRONG WITH YOU?? YOU THINK YOU'RE FUNNY DO YOU? THINK YOU'RE ####### #### ###### FUNNY??? I'LL SHOW YOU WHAT F");
+		event.reply(get_response("strikethrough"));
 	}
 	// response - hazelbot
 	else if (StringUtils::to_lower(event.msg.content).find("hazelbot") != std::string::npos) {
@@ -96,32 +141,23 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 			event.reply("meow");
 			return;
 		}
-
-
-		// possible responses
-		const std::vector<std::string> responses = { "did someone say my name?", "hey ;]", "hello!!", ":3", "SHUT THE ###### #### ##### ###", "fine day innit?", "i think i've fallen in love with you", "thy shall suffer my wrath for proclaiming my name!", "haiii :3", "heyyyy", "i hate you.", "YOU MAKE EVEN THE DEVIL CRY", "i don't wanna talk rn..", "i'm about to go s*gma mode", "hi.", "hello", "greetings", "waow hi", "life has lost all meaning.", "^w^", "sorry i've been feeling a little upset lately and i don't really feel like talking :(", "shut up before i make you.", "hey", "haii how are you doing! ^^", "hai!!!", "yay! hi!", "ok.", "idc. shut up", "https://cdn.discordapp.com/attachments/1277125825447202816/1284132299150987274/IMG_9972.jpg?ex=66e584e6&is=66e43366&hm=d33b7f0e73eb89aeab7500018c15624d1213f9f8bf1e4f36d4fe012531893e6f&", "ok but did you hear about the rizzler", "g g g g gg gg  g gg g  g g g gggg gg g gg g gg g g g gg gggg g"};
-
-		int r = std::rand() % responses.size();
-
-		event.reply(responses[r]);
+    
+    event.reply(get_response("hazelbot"));
 	}
 
 	// response "silksong"
 	if (StringUtils::to_lower(event.msg.content).find("silksong") != std::string::npos) {
-		// possible responses
-		const std::vector<std::string> responses = { "*sigh* bapanada.", "GESSOOOOOOOOOOO", "velmi artrid", "*sigh* apaul", "SHAW", "patamas geo", "DOMA DOMA!! DOMA DOMA DOMA!!!", "RAVA"};
-		int r = std::rand() % responses.size();
-		event.reply(responses[r]);
+    event.reply(get_response("silksong"));
 	}
 
 	// response - step 3
 	if (StringUtils::to_lower(event.msg.content).find("step 3") != std::string::npos) {
-		event.reply("SQUISH!!");
+		event.reply(get_response("SQUISH"));
 	}
 
 	// response - ping hazelbot
 	if (StringUtils::to_lower(event.msg.content).find("<@1269130556386578524>") != std::string::npos) {
-		event.reply("WHAT IS YOUR PROBLEM. DO YOU NOT HAVE ANY RESPECT FOR OTHER PEOPLE?? WHY DO YOU THINK IT'S OKAY TO PING ME SO THAT I HAVE TO GO OUT OF MY WAY TO CHECK, JUST TO SEE YOUR STUPID, #######, #####, ########, PATHETIC, ####, UTTERLY USELESS MESSAGE. WHAT IS WRONG WITH YOU. MAYBE YOU SHOULD GO DO SOMETHING WITH YOUR LIFE, INSTEAD OF SITTING HERE ON YOUR SILLY LITTLE ######## ##### DEVICE, DOING NOTHING PRODUCTIVE, JUST CAUSING MORE WORK FOR ME. WHY DON'T YOU GO PING THE MODERATORS INSTEAD, MAYBE THEY WILL BE MORE TOLERANT OF YOUR STUPID, #########, ######, IRRELEVANT ANTICS. GO WASTE SOMEONE ELSE'S TIME, YOU ######## ###### I HATE YOU AND EVERYTHING YOU ##### STAND FOR, ####### #####.");
+		event.reply(get_response("ping"));
 	}
 
 	// response - :3
@@ -131,12 +167,12 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 
 	// response - let there be cabbits
 	if (StringUtils::to_lower(event.msg.content) == "let there be cabbits!") {
-		event.reply("Awesome! Thank");
+		event.reply(get_response("let there be cabbits"));
 	}
 
 	// response - cabbit
 	else if (StringUtils::to_lower(event.msg.content).find("cabbit") != std::string::npos) {
-		event.reply("https://cdn.discordapp.com/attachments/1232706754266140783/1288158475246899230/GUHXnCcWoAAsAMA.jpg?ex=66f42a91&is=66f2d911&hm=d7bd94865a816bcca0322dad2be5b8df3b79325e220483ae22cc37720629f3f8&");
+		event.reply(get_response("cabbit"));
 	}
 
 	// debug
@@ -307,6 +343,8 @@ int main() {
 	channel2id = ConfigParser::get_string("2_id", "0");
 	quotes_saveto_channel_id = ConfigParser::get_string("quotes_channel_id", "");
 	quote_votes_required = ConfigParser::get_integer("quote_votes_required", 1);
+
+  bot_responses = parse_responses_from_files();
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
