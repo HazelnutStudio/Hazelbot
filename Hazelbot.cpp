@@ -102,6 +102,11 @@ std::map<std::string, std::vector<std::string>> parse_responses_from_files(){
 std::string get_response(std::string response_id){
   // picks a random response for response_id from the corresponding file
   std::vector<std::string> possible_responses = bot_responses[response_id];
+  
+  if(possible_responses.size() == 0){
+    // if there are no responses in the file
+    return "{empty response}";
+  }
 
   int r = std::rand() % possible_responses.size();
 
