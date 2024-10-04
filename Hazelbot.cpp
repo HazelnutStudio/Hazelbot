@@ -1,11 +1,18 @@
 ﻿#include <dpp/dpp.h>
 #include <fstream>
 #include <sstream>
+#include <regex>
 #include "StringUtils.h"
 #include "ConfigParser.h"
 
 const std::string v = "14";
+std::string quotes_saveto_channel_id;
+std::string counting_channel_id;
 std::string channel2id;
+int quote_votes_required;
+std::map<std::string, std::vector<std::string>> bot_responses;
+
+int counting_current_number;
 
 struct quote_message_info {
 private:
@@ -54,10 +61,8 @@ public:
 };
 
 std::map<std::string, quote_message_info> active_quote_votes;
-std::string quotes_saveto_channel_id;
-int quote_votes_required;
 
-std::map<std::string, std::vector<std::string>> bot_responses;
+
 
 std::vector<std::string> parse_responses_from_file(std::string path){
   std::ifstream file(path);
@@ -209,6 +214,22 @@ bool two_filter(dpp::cluster& bot, const dpp::message_create_t& event) {
 	return true;
 }
 
+bool counting_filter(dpp::cluster& bot, const dpp::message_create_t& event){
+  dpp::snowflake channel_id = event.msg.channel_id;
+
+  if(channel_id.str() != counting_channel_id){
+    // message was sent outside of the counting channel, so it should be ignored
+    return false;
+  }
+
+  if(event.msg.author == bot.me){
+    // message was sent by bot, so it should be ignored
+    return false;
+  }
+
+  return true;
+}
+
 std::string get_quote_reaction_emoji(bool inText = false) {
 	// discord's emoji system is kinda a mess, so we have to account for multiple cases here
 	// first of all, default emojis all just use their unicode character
@@ -329,7 +350,7 @@ void callback_quote_response_send_success(const dpp::confirmation_callback_t& ca
 	// you can't call message_add_reaction from a constant reference to the cluster, so we have this weird thingy instead.
 	// idk what it does, and it probably won't work, but if you're reading this that means it did
 	event.from->creator->message_add_reaction(data.id, data.channel_id, get_quote_reaction_emoji());
-	
+	// nvm i found out what it does apparently that's just how you call methods from a pointer lmao
 	std::string id = data.channel_id.str() + "." + data.id.str();
 	active_quote_votes.insert({ id, info});
 }
@@ -342,12 +363,53 @@ void appcmd_quote(dpp::cluster& bot, const dpp::message_context_menu_t& event) {
 	event.get_original_response(dpp::command_completion_event_t(callback));
 }
 
+int get_first_number_in_string(std::string string){
+  std::regex regex("[0-9]+");
+  std::smatch match;
+  std::regex_search(string, match, regex);
+
+  if(match.size() == 0){
+    // no numbers in the given string, return with value -1
+    return -1;
+  }
+
+  return std::stoi(match[0].str());
+}
+
+void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& event){
+  event.reply(get_response("counting_chain_fail"));
+}
+
+void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_t& event){
+  event.reply("yay");
+  counting_current_number++;
+}
+
+void counting_message_on_send(dpp::cluster& bot, const dpp::message_create_t& event){
+  int sent_number = get_first_number_in_string(event.msg.content);
+  if(sent_number == -1){
+    // if no number is found, get_first_number_in_string returns -1
+    // if this is the case, we simply want to stop here
+    return;
+  }
+  
+  // verify counting message
+  if(sent_number != counting_current_number){
+    counting_event_fail_chain(bot, event);
+  }
+  else{
+    counting_event_continue_chain(bot, event);
+  }
+}
+
+
 int main() {
 	ConfigParser::initialize_configuration();
 	std::string token = ConfigParser::get_string("token", "");
 	channel2id = ConfigParser::get_string("2_id", "0");
 	quotes_saveto_channel_id = ConfigParser::get_string("quotes_channel_id", "");
 	quote_votes_required = ConfigParser::get_integer("quote_votes_required", 1);
+  counting_channel_id = ConfigParser::get_string("counting_channel_id", "");
 
   bot_responses = parse_responses_from_files();
 
@@ -376,6 +438,7 @@ int main() {
 
 			bot.global_command_create(quote_command);
 		}
+
 		
 	});
 
@@ -394,6 +457,9 @@ int main() {
 		if (two_filter(bot, event)) {
 			bot.message_delete(event.msg.id, event.msg.channel_id);
 		}
+    if(counting_filter(bot, event)){
+      counting_message_on_send(bot, event);
+    }
 	});
 
 	bot.on_message_reaction_add([&bot](const dpp::message_reaction_add_t& event) {
