@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include <variant>
 #include "StringUtils.h"
 #include "ConfigParser.h"
 #include "CountingState.h"
@@ -481,8 +482,7 @@ void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callbac
   // yay
   dpp::embed embed;
   dpp::message message;
-
-  dpp::user user = callback.get<dpp::user>();
+  dpp::user_identified user = callback.get<dpp::user_identified>();
   embed.set_title("Counting Stats - " + user.global_name);
   CountingUserState user_stats;
   if(counting_state.user_stats.count(user.id.str()) == 0){
@@ -490,6 +490,7 @@ void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callbac
     embed.set_description("User hasn't interacted with the counting system before");
   }
   else{
+    user_stats = counting_state.user_stats[user.id.str()];
     embed.set_description("**Highest Count:** " + std::to_string(user_stats.highest_count)
                           + "\n**Total Counts:** " + std::to_string(user_stats.total_counts)
                           + "\n**Biggest Failure:** " + std::to_string(user_stats.biggest_failure)
@@ -504,9 +505,10 @@ void appcmd_cstats(const dpp::slashcommand_t& event){
   dpp::embed embed;
   dpp::message message;
 
+  std::cout << event.get_parameter("user").index() << std::endl;
   dpp::command_value cv = event.get_parameter("user");
-  dpp::snowflake user_id = std::get<dpp::snowflake>(cv);
-  if(user_id.empty()){
+  if(std::holds_alternative<std::monostate>(cv)) {
+    // no parameters given
     embed.set_title("Counting Stats")
       .set_description("## Information\n**Current Number:** " + std::to_string(counting_state.current_number)
                      + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">"
@@ -518,6 +520,7 @@ void appcmd_cstats(const dpp::slashcommand_t& event){
       .set_thumbnail(event.command.get_guild().get_icon_url()); 
   }else
   {
+    dpp::snowflake user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
     std::function<void(dpp::confirmation_callback_t)> callback = std::bind(callback_cstats_getuser_success, std::placeholders::_1, event);
     event.from->creator->user_get(user_id, callback);
     return;
