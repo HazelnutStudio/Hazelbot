@@ -9,4 +9,9 @@ CountingState::CountingState(){
   total_failures = 0;
 }
 
+CountingUserState::CountingUserState(){
+  highest_count = 0;
+  total_counts = 0;
+  biggest_failure = 0;
+  total_failures = 0;
 }
