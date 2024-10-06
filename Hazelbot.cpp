@@ -435,6 +435,16 @@ void counting_message_on_send(dpp::cluster& bot, const dpp::message_create_t& ev
   counting_event_continue_chain(bot, event);
 }
 
+dpp::message appcmd_cstats(const dpp::slashcommand_t& event){
+  dpp::embed embed;
+  dpp::message message;
+  embed.set_title("Counting Stats")
+    .set_description("**Current Number:** " + std::to_string(counting_state.current_number)
+                     + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">");
+  message.add_embed(embed);
+  return message;
+}
+
 
 int main() {
 	ConfigParser::initialize_configuration();
@@ -463,15 +473,25 @@ int main() {
 			.set_description("Starts a quote vote with the selected message")
 			.set_application_id(bot.me.id);
 
+    dpp::slashcommand cstats_command;
+    cstats_command.set_name("cstats")
+      .set_description("Show stats for the counting channel")
+      .set_application_id(bot.me.id);
+    cstats_command.add_option(
+      dpp::command_option(dpp::co_user, "user", "Specific user you would like to get stats on", false)
+    );
+
 		if (ConfigParser::does_key_exist("guild_id")) {
 			std::string guild_id = ConfigParser::get_string("guild_id", "0");
 
 			bot.guild_command_create(quote_command, guild_id);
+      bot.guild_command_create(cstats_command, guild_id);
 		}
 		else {
 			std::cout << "No guild ID specified in hazelbot.cfg, registering all commands as public (this can take a while to sync, so it is recommended to set a guild id)" << std::endl;
 
 			bot.global_command_create(quote_command);
+      bot.global_command_create(cstats_command);
 		}
 
 		
@@ -485,6 +505,10 @@ int main() {
 			if (event.command.get_command_name() == "Quote") appcmd_quote(bot, event);
 		}
 	});
+
+  bot.on_slashcommand([&bot](const dpp::slashcommand_t& event){
+    event.reply(appcmd_cstats(event));
+  });
 
 	// Message recieved
 	bot.on_message_create([&bot](const dpp::message_create_t& event) {
