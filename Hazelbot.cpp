@@ -4,7 +4,7 @@
 #include <regex>
 #include "StringUtils.h"
 #include "ConfigParser.h"
-#include "CountingStatus.h"
+#include "CountingState.h"
 
 
 const std::string v = "14";
@@ -14,7 +14,7 @@ std::string channel2id;
 int quote_votes_required;
 std::map<std::string, std::vector<std::string>> bot_responses;
 
-CountingStatus counting_status;
+CountingState counting_state;
 
 struct quote_message_info {
 private:
@@ -382,7 +382,7 @@ int get_first_number_in_string(std::string string){
 }
 
 void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& event, int mode = 0){
-  counting_status = CountingStatus();
+  counting_state = CountingState();
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"🤪");
   if(mode == 0){
     // chain failed because someone sent the wrong number
@@ -395,8 +395,8 @@ void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& e
 }
 
 void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_t& event){
-  counting_status.current_number++;
-  counting_status.last_count_author = event.msg.author.id;
+  counting_state.current_number++;
+  counting_state.last_count_author = event.msg.author.id;
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
 }
 
@@ -413,12 +413,12 @@ void counting_message_on_send(dpp::cluster& bot, const dpp::message_create_t& ev
   }
   
   // verify counting message
-  if(sent_number != counting_status.current_number){
+  if(sent_number != counting_state.current_number){
     counting_event_fail_chain(bot, event);
     return;
   }
 
-  if(event.msg.author.id == counting_status.last_count_author){
+  if(event.msg.author.id == counting_state.last_count_author){
     counting_event_fail_chain(bot, event, 1);
     return;
   }
