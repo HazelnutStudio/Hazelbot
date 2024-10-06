@@ -389,7 +389,17 @@ void counting_save_state(){
 }
 
 void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& event, int mode = 0){
-  counting_state = CountingState();
+
+  if(counting_state.current_number > counting_state.highest_count){
+    counting_state.highest_count = counting_state.current_number;
+    counting_state.longest_chain_failed_by = event.msg.author.id;
+  } 
+
+  counting_state.current_number = 1;
+  counting_state.last_count_author = 0;
+
+  counting_state.total_failures++;
+  
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"🤪");
   if(mode == 0){
     // chain failed because someone sent the wrong number
@@ -406,6 +416,9 @@ void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& e
 void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_t& event){
   counting_state.current_number++;
   counting_state.last_count_author = event.msg.author.id;
+
+  counting_state.total_counts++;
+
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
 
   counting_save_state();
@@ -439,8 +452,14 @@ dpp::message appcmd_cstats(const dpp::slashcommand_t& event){
   dpp::embed embed;
   dpp::message message;
   embed.set_title("Counting Stats")
-    .set_description("**Current Number:** " + std::to_string(counting_state.current_number)
-                     + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">");
+    .set_description("## Information\n**Current Number:** " + std::to_string(counting_state.current_number)
+                     + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">"
+                     + "\n\n## Statistics"
+                     + "\n**Highest Chain:** " + std::to_string(counting_state.highest_count)
+                     + "\n**Highest Chain Ruined By:** <@" + std::to_string(counting_state.longest_chain_failed_by) + ">"
+                     + "\n**Total Counts:** " + std::to_string(counting_state.total_counts)
+                     + "\n**Total Failures:** " + std::to_string(counting_state.total_failures))
+    .set_thumbnail(event.command.get_guild().get_icon_url());
   message.add_embed(embed);
   return message;
 }
