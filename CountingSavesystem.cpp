@@ -6,12 +6,13 @@ bool CountingSavesystem::save(CountingState state){
 
   for (std::map<std::string, CountingUserState>::iterator it = state.user_stats.begin(); it != state.user_stats.end(); it++) {
     nlohmann::json data = {
+          };
+    userdata[it->first] = {
       {"highest_count", it->second.highest_count},
       {"total_counts", it->second.total_counts},
       {"biggest_failure", it->second.biggest_failure},
       {"total_failures", it->second.total_failures}
     };
-    userdata.push_back({it->first, data});
   }
 
   nlohmann::json json = {
@@ -21,8 +22,9 @@ bool CountingSavesystem::save(CountingState state){
     {"total_counts", state.total_counts},
     {"longest_chain_failed_by", state.longest_chain_failed_by.str()},
     {"total_failures", state.total_failures},
-    {"user_data", userdata}
   };
+
+  json["user_data"] = userdata;
 
   std::ofstream save_file;
   save_file.open("data/counting_data.json");
