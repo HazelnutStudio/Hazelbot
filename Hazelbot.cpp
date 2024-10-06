@@ -5,6 +5,7 @@
 #include "StringUtils.h"
 #include "ConfigParser.h"
 #include "CountingState.h"
+#include "CountingSavesystem.h"
 
 
 const std::string v = "14";
@@ -381,6 +382,12 @@ int get_first_number_in_string(std::string string){
   return std::stoi(match[0].str());
 }
 
+void counting_save_state(){
+  // logic here
+
+  CountingSavesystem::save(counting_state);
+}
+
 void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& event, int mode = 0){
   counting_state = CountingState();
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"🤪");
@@ -392,17 +399,19 @@ void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& e
     // chain failed because someone sent a number twice
     event.reply(get_response("counting_chain_fail_doublesend"));
   }
+
+  counting_save_state();
 }
 
 void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_t& event){
   counting_state.current_number++;
   counting_state.last_count_author = event.msg.author.id;
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
+
+  counting_save_state();
 }
 
-void counting_save_state(){
-  // logic here
-}
+
 
 void counting_message_on_send(dpp::cluster& bot, const dpp::message_create_t& event){
   int sent_number = get_first_number_in_string(event.msg.content);
@@ -436,6 +445,8 @@ int main() {
   counting_channel_id = ConfigParser::get_string("counting_channel_id", "");
 
   bot_responses = parse_responses_from_files();
+
+  counting_state = CountingSavesystem::load();
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
