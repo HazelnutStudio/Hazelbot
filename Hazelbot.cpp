@@ -395,6 +395,21 @@ void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& e
     counting_state.longest_chain_failed_by = event.msg.author.id;
   } 
 
+  CountingUserState user;
+  if(counting_state.user_stats.count(event.msg.author.id.str())){
+    // if user is already in user_stats
+    user = counting_state.user_stats[event.msg.author.id.str()];
+    // otherwise leave all user stats as the default, by just not doing anything
+  }
+
+  user.total_failures++;
+
+  if(counting_state.current_number > user.biggest_failure){
+    user.biggest_failure = counting_state.current_number;
+  }
+
+  counting_state.user_stats.insert_or_assign(event.msg.author.id.str(), user);
+
   counting_state.current_number = 1;
   counting_state.last_count_author = 0;
 
@@ -414,10 +429,24 @@ void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& e
 }
 
 void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_t& event){
-  counting_state.current_number++;
   counting_state.last_count_author = event.msg.author.id;
 
   counting_state.total_counts++;
+
+  CountingUserState user;
+  if(counting_state.user_stats.count(event.msg.author.id.str())){
+    // if user is already in user_stats
+    user = counting_state.user_stats[event.msg.author.id.str()];
+    // otherwise leave all user stats as the default, by just not doing anything
+  }
+
+  user.total_counts++;
+  if(counting_state.current_number > user.highest_count){
+    user.highest_count = counting_state.current_number;
+  }
+
+  counting_state.user_stats.insert_or_assign(event.msg.author.id.str(), user);
+  counting_state.current_number++;
 
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
 
@@ -448,20 +477,54 @@ void counting_message_on_send(dpp::cluster& bot, const dpp::message_create_t& ev
   counting_event_continue_chain(bot, event);
 }
 
-dpp::message appcmd_cstats(const dpp::slashcommand_t& event){
+void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callback, const dpp::slashcommand_t& event){
+  // yay
   dpp::embed embed;
   dpp::message message;
-  embed.set_title("Counting Stats")
-    .set_description("## Information\n**Current Number:** " + std::to_string(counting_state.current_number)
+
+  dpp::user user = callback.get<dpp::user>();
+  embed.set_title("Counting Stats - " + user.global_name);
+  CountingUserState user_stats;
+  if(counting_state.user_stats.count(user.id.str()) == 0){
+    // user hasn't interacted with counting system before
+    embed.set_description("User hasn't interacted with the counting system before");
+  }
+  else{
+    embed.set_description("**Highest Count:** " + std::to_string(user_stats.highest_count)
+                          + "\n**Total Counts:** " + std::to_string(user_stats.total_counts)
+                          + "\n**Biggest Failure:** " + std::to_string(user_stats.biggest_failure)
+                          + "\n**Total Failures:** " + std::to_string(user_stats.total_failures));
+  }
+  embed.set_thumbnail(user.get_avatar_url());
+  message.add_embed(embed);
+  event.reply(message);
+}
+
+void appcmd_cstats(const dpp::slashcommand_t& event){
+  dpp::embed embed;
+  dpp::message message;
+
+  dpp::command_value cv = event.get_parameter("user");
+  dpp::snowflake user_id = std::get<dpp::snowflake>(cv);
+  if(user_id.empty()){
+    embed.set_title("Counting Stats")
+      .set_description("## Information\n**Current Number:** " + std::to_string(counting_state.current_number)
                      + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">"
                      + "\n\n## Statistics"
                      + "\n**Highest Chain:** " + std::to_string(counting_state.highest_count)
                      + "\n**Highest Chain Ruined By:** <@" + std::to_string(counting_state.longest_chain_failed_by) + ">"
                      + "\n**Total Counts:** " + std::to_string(counting_state.total_counts)
                      + "\n**Total Failures:** " + std::to_string(counting_state.total_failures))
-    .set_thumbnail(event.command.get_guild().get_icon_url());
+      .set_thumbnail(event.command.get_guild().get_icon_url()); 
+  }else
+  {
+    std::function<void(dpp::confirmation_callback_t)> callback = std::bind(callback_cstats_getuser_success, std::placeholders::_1, event);
+    event.from->creator->user_get(user_id, callback);
+    return;
+  }
+  
   message.add_embed(embed);
-  return message;
+  event.reply(message);
 }
 
 
@@ -526,7 +589,7 @@ int main() {
 	});
 
   bot.on_slashcommand([&bot](const dpp::slashcommand_t& event){
-    event.reply(appcmd_cstats(event));
+    appcmd_cstats(event);
   });
 
 	// Message recieved
@@ -546,9 +609,6 @@ int main() {
 		}
 	});
 
-	std::cout << "running version " + v + "\n";
 	bot.start(dpp::st_wait);
-
-
 	return 0;
 }
