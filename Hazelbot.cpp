@@ -141,7 +141,7 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 
 	if (StringUtils::ends_with(event.msg.content, "?")) {
 		// is a question
-		const std::vector<std::string> question_startings = { "are", "do", "did", "can", "should", "would you", "could i", "am i", "is", "will", "won't you", "would", "wouldn't" };
+		const std::vector<std::string> question_startings = { "are", "do", "did", "can", "should", "would you", "could i", "am i", "is", "will", "won't you", "would", "wouldn't", "have" };
 		for (size_t i = 0; i < question_startings.size(); i++)
 		{
 			if (StringUtils::starts_with(StringUtils::to_lower(event.msg.content), "hazelbot, " + question_startings[i])) {
@@ -705,12 +705,14 @@ int main() {
 		if (ConfigParser::does_key_exist("guild_id")) {
 			std::string guild_id = ConfigParser::get_string("guild_id", "0");
 
+      bot.guild_bulk_command_delete(guild_id);
 			bot.guild_command_create(quote_command, guild_id);
       bot.guild_command_create(cstats_command, guild_id);
 		}
 		else {
 			std::cout << "No guild ID specified in config/hazelbot.cfg, registering all commands as public (this can take a while to sync, so it is recommended to set a guild id)" << std::endl;
 
+      bot.global_bulk_command_delete();
 			bot.global_command_create(quote_command);
       bot.global_command_create(cstats_command);
 		}
