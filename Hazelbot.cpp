@@ -285,7 +285,7 @@ bool is_quote_message(dpp::snowflake channel_id, dpp::snowflake message_id) {
 
 //const std::string quotes_saveto_guild_id = ConfigParser::get_string("guild_id", "");
 
-void add_quote_message(quote_message_info& message, dpp::cluster* bot) {
+void add_quote_message(quote_message_info& message, dpp::cluster* bot, std::string key) {
 	// called when a quote message has reached enough votes to be added to the quotes channel
 
 	// idk why it makes me do this in multiple lines
@@ -295,6 +295,7 @@ void add_quote_message(quote_message_info& message, dpp::cluster* bot) {
 	dpp::message m;
 	m.content = content;
 	m.channel_id = quotes_saveto_channel_id;
+  active_quote_votes.erase(key); // deactivate quote vote
 	bot->message_create(m);
 }
 
@@ -322,8 +323,14 @@ void on_quote_message_reaction_add_message_get_callback(const dpp::confirmation_
 	if (reaction.count_normal - 1 >= quote_votes_required) {
 		// message has reached number of votes required
 		// find message in active_quote_votes
-		quote_message_info& info = active_quote_votes[message.channel_id.str() + "." + message.id.str()];
-		add_quote_message(info, event.from->creator);
+    std::string key = message.channel_id.str() + "." + message.id.str();
+    if(active_quote_votes.count(key) == 0){
+      // message has likely just been added to the quotes channel, while we were waiting on this callback 
+      // if this is the case, we should just not continue
+      return;
+    }
+		quote_message_info& info = active_quote_votes[key];
+		add_quote_message(info, event.from->creator, key);
 	}
 
 }
