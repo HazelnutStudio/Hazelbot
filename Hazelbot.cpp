@@ -1,4 +1,5 @@
-﻿#include <ctime>
+﻿#include <cmath>
+#include <ctime>
 #include <dpp/dpp.h>
 #include <fstream>
 #include <sstream>
@@ -502,11 +503,21 @@ void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callbac
   }
   else{
     user_stats = counting_state.user_stats[user.id.str()];
+    // find contribution stats to 1 dp
+    std::string perc_contribution_counts = std::to_string(std::round(((double)user_stats.total_counts / (double)counting_state.total_counts) * 1000) / 10);
+    // remove trailing zeroes
+    perc_contribution_counts.erase(perc_contribution_counts.find_last_not_of('0') + 1, std::string::npos);
+    perc_contribution_counts.erase(perc_contribution_counts.find_last_not_of('.') + 1, std::string::npos);
+    std::string perc_contribution_failures = std::to_string(std::round(((double)user_stats.total_failures / (double)counting_state.total_failures) * 1000) / 10);
+    perc_contribution_failures.erase(perc_contribution_failures.find_last_not_of('0') + 1, std::string::npos);
+    perc_contribution_failures.erase(perc_contribution_failures.find_last_not_of('.') + 1, std::string::npos);
     embed.set_description("**Highest Count:** " + std::to_string(user_stats.highest_count)
                           + " (<t:" + std::to_string(user_stats.highest_count_sent) + ":R>)"
                           + "\n**Total Counts:** " + std::to_string(user_stats.total_counts)
+                          + " (" + perc_contribution_counts + "%)"
                           + "\n**Biggest Failure:** " + std::to_string(user_stats.biggest_failure)
-                          + "\n**Total Failures:** " + std::to_string(user_stats.total_failures));
+                          + "\n**Total Failures:** " + std::to_string(user_stats.total_failures)
+                          + " (" + perc_contribution_failures + "%)");
   }
   embed.set_thumbnail(user.get_avatar_url());
   message.add_embed(embed);
