@@ -1,4 +1,5 @@
-﻿#include <dpp/dpp.h>
+﻿#include <ctime>
+#include <dpp/dpp.h>
 #include <fstream>
 #include <sstream>
 #include <regex>
@@ -15,6 +16,7 @@ std::string counting_channel_id;
 std::string channel2id;
 int quote_votes_required;
 std::map<std::string, std::vector<std::string>> bot_responses;
+time_t bot_timezone_offset;
 
 CountingState counting_state;
 
@@ -288,7 +290,7 @@ void add_quote_message(quote_message_info& message, dpp::cluster* bot) {
 
 	// idk why it makes me do this in multiple lines
 	std::string content = "> " + message.get_quoted_message_content() + "\n \\- <@";
-	content += message.get_quoted_message_author_id().str() + ">, <t:" + std::to_string(message.get_quoted_message_sent()) + ":f>";
+	content += message.get_quoted_message_author_id().str() + ">, <t:" + std::to_string(message.get_quoted_message_sent() + bot_timezone_offset) + ":f>";
 
 	dpp::message m;
 	m.content = content;
@@ -392,7 +394,8 @@ void counting_save_state(){
 void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& event, int mode = 0){
 
   if(counting_state.current_number > counting_state.highest_count){
-    counting_state.highest_count = counting_state.current_number;
+    counting_state.highest_count = counting_state.current_number - 1;
+    counting_state.highest_count_sent = event.msg.sent + bot_timezone_offset;
     counting_state.longest_chain_failed_by = event.msg.author.id;
   } 
 
@@ -406,7 +409,7 @@ void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& e
   user.total_failures++;
 
   if(counting_state.current_number > user.biggest_failure){
-    user.biggest_failure = counting_state.current_number;
+    user.biggest_failure = counting_state.current_number - 1;
   }
 
   counting_state.user_stats.insert_or_assign(event.msg.author.id.str(), user);
@@ -443,7 +446,8 @@ void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_
 
   user.total_counts++;
   if(counting_state.current_number > user.highest_count){
-    user.highest_count = counting_state.current_number;
+    user.highest_count = counting_state.current_number - 1;
+    user.highest_count_sent = event.msg.sent + bot_timezone_offset;
   }
 
   counting_state.user_stats.insert_or_assign(event.msg.author.id.str(), user);
@@ -492,6 +496,7 @@ void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callbac
   else{
     user_stats = counting_state.user_stats[user.id.str()];
     embed.set_description("**Highest Count:** " + std::to_string(user_stats.highest_count)
+                          + " (<t:" + std::to_string(user_stats.highest_count_sent) + ":R>)"
                           + "\n**Total Counts:** " + std::to_string(user_stats.total_counts)
                           + "\n**Biggest Failure:** " + std::to_string(user_stats.biggest_failure)
                           + "\n**Total Failures:** " + std::to_string(user_stats.total_failures));
@@ -505,7 +510,6 @@ void appcmd_cstats(const dpp::slashcommand_t& event){
   dpp::embed embed;
   dpp::message message;
 
-  std::cout << event.get_parameter("user").index() << std::endl;
   dpp::command_value cv = event.get_parameter("user");
   if(std::holds_alternative<std::monostate>(cv)) {
     // no parameters given
@@ -513,8 +517,9 @@ void appcmd_cstats(const dpp::slashcommand_t& event){
       .set_description("## Information\n**Current Number:** " + std::to_string(counting_state.current_number)
                      + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">"
                      + "\n\n## Statistics"
-                     + "\n**Highest Chain:** " + std::to_string(counting_state.highest_count)
-                     + "\n**Highest Chain Ruined By:** <@" + std::to_string(counting_state.longest_chain_failed_by) + ">"
+                     + "\n**Longest Chain:** " + std::to_string(counting_state.highest_count)
+                     + " (<t:" + std::to_string(counting_state.highest_count_sent) + ":R>)"
+                     + "\n**Longest Chain Ruined By:** <@" + std::to_string(counting_state.longest_chain_failed_by) + ">"
                      + "\n**Total Counts:** " + std::to_string(counting_state.total_counts)
                      + "\n**Total Failures:** " + std::to_string(counting_state.total_failures))
       .set_thumbnail(event.command.get_guild().get_icon_url()); 
@@ -530,6 +535,15 @@ void appcmd_cstats(const dpp::slashcommand_t& event){
   event.reply(message);
 }
 
+time_t get_timezone_offset(){
+  time_t t = time(NULL);
+  struct tm localtime = {0};
+  localtime_r(&t, &localtime);
+  time_t currenttime_sec = 0;
+  time_t offset = localtime.tm_gmtoff;
+  return offset;
+}
+
 
 int main() {
 	ConfigParser::initialize_configuration();
@@ -542,6 +556,8 @@ int main() {
   bot_responses = parse_responses_from_files();
 
   counting_state = CountingSavesystem::load();
+
+  bot_timezone_offset = get_timezone_offset();
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 

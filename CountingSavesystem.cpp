@@ -9,6 +9,7 @@ bool CountingSavesystem::save(CountingState state){
           };
     userdata[it->first] = {
       {"highest_count", it->second.highest_count},
+      {"highest_count_sent", it->second.highest_count_sent},
       {"total_counts", it->second.total_counts},
       {"biggest_failure", it->second.biggest_failure},
       {"total_failures", it->second.total_failures}
@@ -19,6 +20,7 @@ bool CountingSavesystem::save(CountingState state){
     {"current_number", state.current_number},
     {"last_count_author", state.last_count_author.str()},
     {"highest_count", state.highest_count},
+    {"highest_count_sent", state.highest_count_sent},
     {"total_counts", state.total_counts},
     {"longest_chain_failed_by", state.longest_chain_failed_by.str()},
     {"total_failures", state.total_failures},
@@ -58,6 +60,7 @@ CountingState CountingSavesystem::load(){
   state.current_number = json.value<int>("current_number", 0);
   state.last_count_author = json.value("last_count_author", "0");
   state.highest_count = json.value<int>("highest_count", 0);
+  state.highest_count_sent = json.value<std::time_t>("highest_count_sent", std::time_t());
   state.total_counts = json.value<int>("total_counts", 0);
   state.longest_chain_failed_by = json.value("longest_chain_failed_by", "0");
   state.total_failures = json.value<int>("total_failures", 0);
@@ -68,6 +71,7 @@ CountingState CountingSavesystem::load(){
   for(nlohmann::json::iterator it = userdata.begin(); it != userdata.end(); it++){
     CountingUserState user;
     user.highest_count = it->value<int>("highest_count", 0);
+    user.highest_count_sent = it->value<std::time_t>("highest_count_sent", std::time_t());
     user.total_counts = it->value<int>("total_counts", 0);
     user.biggest_failure = it->value<int>("biggest_failure", 0);
     user.total_failures = it->value<int>("total_failures", 0);
