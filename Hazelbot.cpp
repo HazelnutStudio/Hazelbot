@@ -298,6 +298,7 @@ void add_quote_message(quote_message_info& message, dpp::cluster* bot, std::stri
 	// called when a quote message has reached enough votes to be added to the quotes channel
 
 	// idk why it makes me do this in multiple lines
+  std::string timestamp;
 	std::string content = "> " + message.get_quoted_message_content() + "\n \\- <@";
 	content += message.get_quoted_message_author_id().str() + ">, <t:" + std::to_string(message.get_quoted_message_sent() + bot_timezone_offset) + ":f>";
 
@@ -655,10 +656,13 @@ void clips_message_on_reaction_add(const dpp::message_reaction_add_t& event){
 }
 
 time_t get_timezone_offset(){
+  if(!ConfigParser::get_boolean("use_timezone_fix", false)){
+    // timezone fix is not enabled, so leave the offset as 0
+    return 0;
+  }
   time_t t = time(NULL);
   struct tm localtime = {0};
   localtime_r(&t, &localtime);
-  time_t currenttime_sec = 0;
   time_t offset = localtime.tm_gmtoff;
   return offset;
 }
