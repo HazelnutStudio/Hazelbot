@@ -667,7 +667,15 @@ time_t get_timezone_offset(){
   return offset;
 }
 
-int main() {
+bool delete_commands = false;
+int main(int argc, char *argv[]) {
+
+  if(argc > 1){
+    if(std::strcmp(argv[1], "-delete_commands") == 0){
+      delete_commands = true;
+      std::cout << "deleting commands" << std::endl;
+    }
+  }
 	ConfigParser::initialize_configuration();
 	std::string token = ConfigParser::get_string("token", "");
 	channel2id = ConfigParser::get_string("2_id", "0");
@@ -690,33 +698,38 @@ int main() {
 	bot.on_ready([&bot](const dpp::ready_t& event) {
 		// initialize commands
 
+    dpp::slashcommand quote_command;
+		  quote_command.set_type(dpp::ctxm_message)
+		  	.set_name("Quote")
+		  	.set_description("Starts a quote vote with the selected message")
+		  	.set_application_id(bot.me.id);
 
-		// quote
-		dpp::slashcommand quote_command;
-		quote_command.set_type(dpp::ctxm_message)
-			.set_name("Quote")
-			.set_description("Starts a quote vote with the selected message")
-			.set_application_id(bot.me.id);
-
-    dpp::slashcommand cstats_command;
-    cstats_command.set_name("cstats")
-      .set_description("Show stats for the counting channel")
-      .set_application_id(bot.me.id);
-    cstats_command.add_option(
+      dpp::slashcommand cstats_command;
+      cstats_command.set_name("cstats")
+         .set_description("Show stats for the counting channel")
+         .set_application_id(bot.me.id);
+      cstats_command.add_option(
       dpp::command_option(dpp::co_user, "user", "Specific user you would like to get stats on", false)
     );
 
 		if (ConfigParser::does_key_exist("guild_id")) {
 			std::string guild_id = ConfigParser::get_string("guild_id", "0");
+      
+      if(delete_commands){
+        bot.guild_bulk_command_delete(guild_id);
+      }
 
-      bot.guild_bulk_command_delete(guild_id);
 			bot.guild_command_create(quote_command, guild_id);
       bot.guild_command_create(cstats_command, guild_id);
+      
 		}
 		else {
 			std::cout << "No guild ID specified in config/hazelbot.cfg, registering all commands as public (this can take a while to sync, so it is recommended to set a guild id)" << std::endl;
 
-      bot.global_bulk_command_delete();
+      if(delete_commands){
+        bot.global_bulk_command_delete();
+      }
+
 			bot.global_command_create(quote_command);
       bot.global_command_create(cstats_command);
 		}
