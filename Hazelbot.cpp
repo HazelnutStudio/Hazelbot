@@ -141,7 +141,7 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 
 	if (StringUtils::ends_with(event.msg.content, "?")) {
 		// is a question
-		const std::vector<std::string> question_startings = { "are", "do", "did", "can", "should", "would you", "could i", "am i", "is", "will", "won't you", "would", "wouldn't" };
+		const std::vector<std::string> question_startings = { "are", "do", "did", "can", "should", "would you", "could i", "am i", "is", "will", "won't you", "would", "wouldn't", "have" };
 		for (size_t i = 0; i < question_startings.size(); i++)
 		{
 			if (StringUtils::starts_with(StringUtils::to_lower(event.msg.content), "hazelbot, " + question_startings[i])) {
@@ -298,6 +298,7 @@ void add_quote_message(quote_message_info& message, dpp::cluster* bot, std::stri
 	// called when a quote message has reached enough votes to be added to the quotes channel
 
 	// idk why it makes me do this in multiple lines
+  std::string timestamp;
 	std::string content = "> " + message.get_quoted_message_content() + "\n \\- <@";
 	content += message.get_quoted_message_author_id().str() + ">, <t:" + std::to_string(message.get_quoted_message_sent() + bot_timezone_offset) + ":f>";
 
@@ -655,10 +656,13 @@ void clips_message_on_reaction_add(const dpp::message_reaction_add_t& event){
 }
 
 time_t get_timezone_offset(){
+  if(!ConfigParser::get_boolean("use_timezone_fix", false)){
+    // timezone fix is not enabled, so leave the offset as 0
+    return 0;
+  }
   time_t t = time(NULL);
   struct tm localtime = {0};
   localtime_r(&t, &localtime);
-  time_t currenttime_sec = 0;
   time_t offset = localtime.tm_gmtoff;
   return offset;
 }
@@ -705,12 +709,14 @@ int main() {
 		if (ConfigParser::does_key_exist("guild_id")) {
 			std::string guild_id = ConfigParser::get_string("guild_id", "0");
 
+      bot.guild_bulk_command_delete(guild_id);
 			bot.guild_command_create(quote_command, guild_id);
       bot.guild_command_create(cstats_command, guild_id);
 		}
 		else {
 			std::cout << "No guild ID specified in config/hazelbot.cfg, registering all commands as public (this can take a while to sync, so it is recommended to set a guild id)" << std::endl;
 
+      bot.global_bulk_command_delete();
 			bot.global_command_create(quote_command);
       bot.global_command_create(cstats_command);
 		}
