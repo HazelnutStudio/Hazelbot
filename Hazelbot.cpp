@@ -1,12 +1,10 @@
-﻿#include <cmath>
+﻿#include "Common.h"
+#include <cmath>
 #include <ctime>
-#include <dpp/dpp.h>
 #include <fstream>
 #include <sstream>
 #include <regex>
 #include <variant>
-#include "StringUtils.h"
-#include "ConfigParser.h"
 #include "CountingState.h"
 #include "CountingSavesystem.h"
 
