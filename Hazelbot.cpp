@@ -1,12 +1,10 @@
 ﻿#include "Common.h"
 #include <cmath>
-#include <ctime>
 #include <fstream>
 #include <sstream>
-#include <regex>
 #include <variant>
-#include "CountingState.h"
-#include "CountingSavesystem.h"
+#include "Counting.h"
+#include "TimezoneOffsetFix.h"
 
 
 const std::string v = "14";
@@ -18,8 +16,6 @@ int quote_votes_required;
 int clip_votes_required;
 std::map<std::string, std::vector<std::string>> bot_responses;
 time_t bot_timezone_offset;
-
-CountingState counting_state;
 
 struct quote_message_info {
 private:
@@ -384,119 +380,6 @@ void appcmd_quote(dpp::cluster& bot, const dpp::message_context_menu_t& event) {
 	event.get_original_response(dpp::command_completion_event_t(callback));
 }
 
-int get_first_number_in_string(std::string string){
-  // matches any number, unless it is contained in angled brackets <>
-  // ignores emojis, pings, channel links, etc.
-  // doesn't ignore links because idk how to do that i'll work it out later
-  std::regex regex("[0-9]+");
-  std::smatch match;
-  std::regex_search(string, match, regex);
-
-  if(match.size() == 0){
-    // no numbers in the given string, return with value -1
-    return -1;
-  }
-
-  return std::stoi(match[0].str());
-}
-
-void counting_save_state(){
-  // logic here
-
-  CountingSavesystem::save(counting_state);
-}
-
-void counting_event_fail_chain(dpp::cluster& bot, const dpp::message_create_t& event, int mode = 0){
-
-  if(counting_state.current_number > counting_state.highest_count){
-    counting_state.highest_count = counting_state.current_number - 1;
-    counting_state.highest_count_sent = event.msg.sent + bot_timezone_offset;
-    counting_state.longest_chain_failed_by = event.msg.author.id;
-  } 
-
-  CountingUserState user;
-  if(counting_state.user_stats.count(event.msg.author.id.str())){
-    // if user is already in user_stats
-    user = counting_state.user_stats[event.msg.author.id.str()];
-    // otherwise leave all user stats as the default, by just not doing anything
-  }
-
-  user.total_failures++;
-
-  if(counting_state.current_number > user.biggest_failure){
-    user.biggest_failure = counting_state.current_number - 1;
-  }
-
-  counting_state.user_stats.insert_or_assign(event.msg.author.id.str(), user);
-
-  counting_state.current_number = 1;
-  counting_state.last_count_author = 0;
-
-  counting_state.total_failures++;
-  
-  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"🤪");
-  if(mode == 0){
-    // chain failed because someone sent the wrong number
-    event.reply(get_response("counting_chain_fail_wrongnumber"));
-  }
-  else if(mode == 1){
-    // chain failed because someone sent a number twice
-    event.reply(get_response("counting_chain_fail_doublesend"));
-  }
-
-  counting_save_state();
-}
-
-void counting_event_continue_chain(dpp::cluster& bot, const dpp::message_create_t& event){
-  counting_state.last_count_author = event.msg.author.id;
-
-  counting_state.total_counts++;
-
-  CountingUserState user;
-  if(counting_state.user_stats.count(event.msg.author.id.str())){
-    // if user is already in user_stats
-    user = counting_state.user_stats[event.msg.author.id.str()];
-    // otherwise leave all user stats as the default, by just not doing anything
-  }
-
-  user.total_counts++;
-  if(counting_state.current_number > user.highest_count){
-    user.highest_count = counting_state.current_number - 1;
-    user.highest_count_sent = event.msg.sent + bot_timezone_offset;
-  }
-
-  counting_state.user_stats.insert_or_assign(event.msg.author.id.str(), user);
-  counting_state.current_number++;
-
-  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
-
-  counting_save_state();
-}
-
-
-
-void counting_message_on_send(dpp::cluster& bot, const dpp::message_create_t& event){
-  int sent_number = get_first_number_in_string(event.msg.content);
-  if(sent_number == -1){
-    // if no number is found, get_first_number_in_string returns -1
-    // if this is the case, we simply want to stop here
-    return;
-  }
-  
-  // verify counting message
-  if(sent_number != counting_state.current_number){
-    counting_event_fail_chain(bot, event);
-    return;
-  }
-
-  if(event.msg.author.id == counting_state.last_count_author){
-    counting_event_fail_chain(bot, event, 1);
-    return;
-  }
-
-  counting_event_continue_chain(bot, event);
-}
-
 void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callback, const dpp::slashcommand_t& event){
   // yay
   dpp::embed embed;
@@ -504,18 +387,18 @@ void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callbac
   dpp::user_identified user = callback.get<dpp::user_identified>();
   embed.set_title("Counting Stats - " + user.global_name);
   CountingUserState user_stats;
-  if(counting_state.user_stats.count(user.id.str()) == 0){
+  if(Counting::CountingState.user_stats.count(user.id.str()) == 0){
     // user hasn't interacted with counting system before
     embed.set_description("User hasn't interacted with the counting system before");
   }
   else{
-    user_stats = counting_state.user_stats[user.id.str()];
+    user_stats = Counting::CountingState.user_stats[user.id.str()];
     // find contribution stats to 1 dp
-    std::string perc_contribution_counts = std::to_string(std::round(((double)user_stats.total_counts / (double)counting_state.total_counts) * 1000) / 10);
+    std::string perc_contribution_counts = std::to_string(std::round(((double)user_stats.total_counts / (double)Counting::CountingState.total_counts) * 1000) / 10);
     // remove trailing zeroes
     perc_contribution_counts.erase(perc_contribution_counts.find_last_not_of('0') + 1, std::string::npos);
     perc_contribution_counts.erase(perc_contribution_counts.find_last_not_of('.') + 1, std::string::npos);
-    std::string perc_contribution_failures = std::to_string(std::round(((double)user_stats.total_failures / (double)counting_state.total_failures) * 1000) / 10);
+    std::string perc_contribution_failures = std::to_string(std::round(((double)user_stats.total_failures / (double)Counting::CountingState.total_failures) * 1000) / 10);
     perc_contribution_failures.erase(perc_contribution_failures.find_last_not_of('0') + 1, std::string::npos);
     perc_contribution_failures.erase(perc_contribution_failures.find_last_not_of('.') + 1, std::string::npos);
     embed.set_description("**Highest Count:** " + std::to_string(user_stats.highest_count)
@@ -539,14 +422,14 @@ void appcmd_cstats(const dpp::slashcommand_t& event){
   if(std::holds_alternative<std::monostate>(cv)) {
     // no parameters given
     embed.set_title("Counting Stats")
-      .set_description("## Information\n**Current Number:** " + std::to_string(counting_state.current_number)
-                     + "\n**Last Author:** <@" + std::to_string(counting_state.last_count_author) + ">"
+      .set_description("## Information\n**Current Number:** " + std::to_string(Counting::CountingState.current_number)
+                     + "\n**Last Author:** <@" + std::to_string(Counting::CountingState.last_count_author) + ">"
                      + "\n\n## Statistics"
-                     + "\n**Longest Chain:** " + std::to_string(counting_state.highest_count)
-                     + " (<t:" + std::to_string(counting_state.highest_count_sent) + ":R>)"
-                     + "\n**Longest Chain Ruined By:** <@" + std::to_string(counting_state.longest_chain_failed_by) + ">"
-                     + "\n**Total Counts:** " + std::to_string(counting_state.total_counts)
-                     + "\n**Total Failures:** " + std::to_string(counting_state.total_failures))
+                     + "\n**Longest Chain:** " + std::to_string(Counting::CountingState.highest_count)
+                     + " (<t:" + std::to_string(Counting::CountingState.highest_count_sent) + ":R>)"
+                     + "\n**Longest Chain Ruined By:** <@" + std::to_string(Counting::CountingState.longest_chain_failed_by) + ">"
+                     + "\n**Total Counts:** " + std::to_string(Counting::CountingState.total_counts)
+                     + "\n**Total Failures:** " + std::to_string(Counting::CountingState.total_failures))
       .set_thumbnail(event.command.get_guild().get_icon_url()); 
   }else
   {
@@ -653,18 +536,6 @@ void clips_message_on_reaction_add(const dpp::message_reaction_add_t& event){
   event.from->creator->message_get(event.message_id, event.channel_id, callback);
 }
 
-time_t get_timezone_offset(){
-  if(!ConfigParser::get_boolean("use_timezone_fix", false)){
-    // timezone fix is not enabled, so leave the offset as 0
-    return 0;
-  }
-  time_t t = time(NULL);
-  struct tm localtime = {0};
-  localtime_r(&t, &localtime);
-  time_t offset = localtime.tm_gmtoff;
-  return offset;
-}
-
 bool delete_commands = false;
 int main(int argc, char *argv[]) {
 
@@ -685,9 +556,7 @@ int main(int argc, char *argv[]) {
 
   bot_responses = parse_responses_from_files();
 
-  counting_state = CountingSavesystem::load();
-
-  bot_timezone_offset = get_timezone_offset();
+  TimezoneOffsetFix::InitializeTimezoneOffset();
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
@@ -731,11 +600,7 @@ int main(int argc, char *argv[]) {
 			bot.global_command_create(quote_command);
       bot.global_command_create(cstats_command);
 		}
-
-		
 	});
-
-	
 
 	bot.on_message_context_menu([&bot](const dpp::message_context_menu_t& event) {
 		if (event.command.type == dpp::it_application_command) {
@@ -754,9 +619,6 @@ int main(int argc, char *argv[]) {
 		if (two_filter(bot, event)) {
 			bot.message_delete(event.msg.id, event.msg.channel_id);
 		}
-    if(counting_filter(bot, event)){
-      counting_message_on_send(bot, event);
-    }
     if(clips_filter(event)){
       clips_message_on_send(event);
     }
@@ -770,6 +632,9 @@ int main(int argc, char *argv[]) {
       clips_message_on_reaction_add(event);
     }
 	});
+
+  Counting::InitializeCounting();
+  bot.on_message_create(&Counting::OnMessageCreate);
 
 	bot.start(dpp::st_wait);
 	return 0;
