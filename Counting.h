@@ -1,6 +1,11 @@
-#pragma once
+#ifndef COUNTING_H
+#define COUNTING_H
+
 #include "Common.h"
 #include "CountingState.h"
+#include <regex>
+#include "CountingSavesystem.h"
+#include "TimezoneOffsetFix.h"
 
 enum CountingFailChainCondition{
   WRONG_NUMBER,
@@ -9,14 +14,16 @@ enum CountingFailChainCondition{
 
 class Counting{
 private:
-  static dpp::snowflake _countingChannelID;
-  static void saveState();
-  static bool isCountingMessage(const dpp::message_create_t& event);
-  static int getFirstNumberInString(const std::string& str);
-  static void onFailChain(const dpp::message_create_t& event, const CountingFailChainCondition& condition);
-  static void onContinueChain(const dpp::message_create_t& event);
+  dpp::snowflake _countingChannelID;
+  void saveState();
+  bool isCountingMessage(const dpp::message_create_t& event);
+  int getFirstNumberInString(const std::string& str);
+  void onFailChain(const dpp::message_create_t& event, const CountingFailChainCondition& condition);
+  void onContinueChain(const dpp::message_create_t& event);
 public:
-  static void InitializeCounting();
-  static void OnMessageCreate(const dpp::message_create_t& event);
-  static CountingState CountingState;
+  Counting();
+  void OnMessageCreate(const dpp::message_create_t& event);
+  CountingState State;
 };
+
+#endif

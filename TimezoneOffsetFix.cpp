@@ -1,10 +1,12 @@
 #include "TimezoneOffsetFix.h"
 
-time_t TimezoneOffsetFix::GetTimezoneOffset(){
+time_t _timezoneOffset;
+
+time_t GetTimezoneOffset(){
   return _timezoneOffset;
 }
 
-void TimezoneOffsetFix::InitializeTimezoneOffset(){
+void InitializeTimezoneOffset(){
   if(!ConfigParser::get_boolean("use_timezone_fix", false)){
     // timezone fix is not enabled, set timezone offset to 0
     _timezoneOffset = 0;

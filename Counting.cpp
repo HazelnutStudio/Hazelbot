@@ -1,10 +1,7 @@
 #include "Counting.h"
-#include <regex>
-#include "TimezoneOffsetFix.h"
-#include "CountingSavesystem.h"
 
 void Counting::saveState(){
-  CountingSavesystem::save(CountingState);
+  CountingSavesystem::save(State);
 }
 
 bool Counting::isCountingMessage(const dpp::message_create_t& event){
@@ -32,7 +29,7 @@ int Counting::getFirstNumberInString(const std::string& str){
   std::regex regex("[0-9]+");
   std::regex_search(str, match, regex);
 
-  if(match.size() ==0){
+  if(match.size() == 0){
     // no numbers in the given string, return with value -1
     return -1;
   }
@@ -42,33 +39,33 @@ int Counting::getFirstNumberInString(const std::string& str){
 }
 
 void Counting::onFailChain(const dpp::message_create_t& event, const CountingFailChainCondition& condition){
-  if(CountingState.current_number > CountingState.highest_count){
+  if(State.current_number > State.highest_count){
     // new longest chain 
-    CountingState.highest_count = CountingState.current_number - 1;
-    CountingState.highest_count_sent = event.msg.sent + TimezoneOffsetFix::GetTimezoneOffset();
-    CountingState.longest_chain_failed_by = event.msg.author.id;
+    State.highest_count = State.current_number - 1;
+    State.highest_count_sent = event.msg.sent + GetTimezoneOffset();
+    State.longest_chain_failed_by = event.msg.author.id;
   }
 
   CountingUserState user;
-  if(CountingState.user_stats.count(event.msg.author.id.str())){
+  if(State.user_stats.count(event.msg.author.id.str())){
     // if user is already in user_stats
-    user = CountingState.user_stats[event.msg.author.id.str()];
+    user = State.user_stats[event.msg.author.id.str()];
     // otherwise leave all user stats as the default, by just not doing anything
   }
 
   user.total_failures++;
 
-  if(CountingState.current_number > user.biggest_failure){
+  if(State.current_number > user.biggest_failure){
     // this is a new biggest failure for the user, so update the records
-    user.biggest_failure = CountingState.current_number - 1;
+    user.biggest_failure = State.current_number - 1;
   }
 
-  CountingState.user_stats.insert_or_assign(event.msg.author.id.str(), user);
+  State.user_stats.insert_or_assign(event.msg.author.id.str(), user);
 
-  CountingState.current_number = 1;
-  CountingState.last_count_author = 0;
+  State.current_number = 1;
+  State.last_count_author = 0;
 
-  CountingState.total_failures++;
+  State.total_failures++;
 
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"❌");
 
@@ -83,47 +80,55 @@ void Counting::onFailChain(const dpp::message_create_t& event, const CountingFai
 }
 
 void Counting::onContinueChain(const dpp::message_create_t& event){
-  Counting::CountingState.last_count_author = event.msg.author.id;
-  Counting::CountingState.total_counts++;
+  Counting::State.last_count_author = event.msg.author.id;
+  Counting::State.total_counts++;
 
   CountingUserState user;
-  if(Counting::CountingState.user_stats.count(event.msg.author.id.str())){
+  if(Counting::State.user_stats.count(event.msg.author.id.str())){
     // if the user is already in user_stats
-    user = Counting::CountingState.user_stats[event.msg.author.id.str()]; 
+    user = Counting::State.user_stats[event.msg.author.id.str()]; 
     // otherwise leave all the user stats as the default, by just not doing anything
   }
 
   user.total_counts++;
-  if(Counting::CountingState.current_number > user.highest_count){
-    user.highest_count = Counting::CountingState.current_number - 1;
-    user.highest_count_sent = event.msg.sent + TimezoneOffsetFix::GetTimezoneOffset();
+  if(Counting::State.current_number > user.highest_count){
+    user.highest_count = Counting::State.current_number - 1;
+    user.highest_count_sent = event.msg.sent + GetTimezoneOffset();
   }
 
-  CountingState.user_stats.insert_or_assign(event.msg.author.id.str(), user);
-  CountingState.current_number++;
+  State.user_stats.insert_or_assign(event.msg.author.id.str(), user);
+  State.current_number++;
 
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
 
   Counting::saveState();
 }
 
-void Counting::InitializeCounting(){
+Counting::Counting(){
+  std::cout << "initialize counting" << std::endl;
   Counting::_countingChannelID = dpp::snowflake(ConfigParser::get_string("counting_channel_id", "0"));
-  CountingState = CountingSavesystem::load();
+  State = CountingSavesystem::load();
 }
 
 void Counting::OnMessageCreate(const dpp::message_create_t& event){
+  std::cout << "message created" << std::endl;
   if(!isCountingMessage(event))
     return;
 
+  std::cout << "is a counting message" << std::endl;
   int sentNumber = getFirstNumberInString(event.msg.content);
 
-  if(sentNumber == Counting::CountingState.current_number){
+  if(sentNumber == -1){
+    // no number was found in the string, so -1 was returned
+    return;
+  }
+
+  if(sentNumber != Counting::State.current_number){
     onFailChain(event, WRONG_NUMBER);
     return;
   }
 
-  if(event.msg.author.id == Counting::CountingState.last_count_author){
+  if(event.msg.author.id == Counting::State.last_count_author){
     onFailChain(event, DOUBLE_SEND);
     return;
   }

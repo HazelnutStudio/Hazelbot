@@ -1,11 +1,10 @@
-#pragma once
 #include "Common.h"
 #include <cinttypes>
 
-class TimezoneOffsetFix{
-private:
-  static time_t _timezoneOffset;
-public:
-  static void InitializeTimezoneOffset();
-  static time_t GetTimezoneOffset();
-};
+#ifndef TIMEZONE_OFFSET_FIX_H
+#define TIMEZONE_OFFSET_FIX_H
+
+time_t GetTimezoneOffset();
+void InitializeTimezoneOffset(); 
+
+#endif
