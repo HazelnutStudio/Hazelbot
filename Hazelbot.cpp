@@ -6,6 +6,8 @@
 #include "Counting.h"
 #include "TimezoneOffsetFix.h"
 
+#include "cmds/CStats.h"
+
 const std::string v = "14";
 std::string quotes_saveto_channel_id;
 std::string counting_channel_id;
@@ -379,69 +381,6 @@ void appcmd_quote(dpp::cluster& bot, const dpp::message_context_menu_t& event) {
 	event.get_original_response(dpp::command_completion_event_t(callback));
 }
 
-void callback_cstats_getuser_success(const dpp::confirmation_callback_t& callback, const dpp::slashcommand_t& event){
-  // yay
-  dpp::embed embed;
-  dpp::message message;
-  dpp::user_identified user = callback.get<dpp::user_identified>();
-  embed.set_title("Counting Stats - " + user.global_name);
-  CountingUserState user_stats;
-  if(_counting.State.user_stats.count(user.id.str()) == 0){
-    // user hasn't interacted with counting system before
-    embed.set_description("User hasn't interacted with the counting system before");
-  }
-  else{
-    user_stats = _counting.State.user_stats[user.id.str()];
-    // find contribution stats to 1 dp
-    std::string perc_contribution_counts = std::to_string(std::round(((double)user_stats.total_counts / (double)_counting.State.total_counts) * 1000) / 10);
-    // remove trailing zeroes
-    perc_contribution_counts.erase(perc_contribution_counts.find_last_not_of('0') + 1, std::string::npos);
-    perc_contribution_counts.erase(perc_contribution_counts.find_last_not_of('.') + 1, std::string::npos);
-    std::string perc_contribution_failures = std::to_string(std::round(((double)user_stats.total_failures / (double)_counting.State.total_failures) * 1000) / 10);
-    perc_contribution_failures.erase(perc_contribution_failures.find_last_not_of('0') + 1, std::string::npos);
-    perc_contribution_failures.erase(perc_contribution_failures.find_last_not_of('.') + 1, std::string::npos);
-    embed.set_description("**Highest Count:** " + std::to_string(user_stats.highest_count)
-                          + " (<t:" + std::to_string(user_stats.highest_count_sent) + ":R>)"
-                          + "\n**Total Counts:** " + std::to_string(user_stats.total_counts)
-                          + " (" + perc_contribution_counts + "%)"
-                          + "\n**Biggest Failure:** " + std::to_string(user_stats.biggest_failure)
-                          + "\n**Total Failures:** " + std::to_string(user_stats.total_failures)
-                          + " (" + perc_contribution_failures + "%)");
-  }
-  embed.set_thumbnail(user.get_avatar_url());
-  message.add_embed(embed);
-  event.reply(message);
-}
-
-void appcmd_cstats(const dpp::slashcommand_t& event){
-  dpp::embed embed;
-  dpp::message message;
-
-  dpp::command_value cv = event.get_parameter("user");
-  if(std::holds_alternative<std::monostate>(cv)) {
-    // no parameters given
-    embed.set_title("Counting Stats")
-      .set_description("## Information\n**Current Number:** " + std::to_string(_counting.State.current_number)
-                     + "\n**Last Author:** <@" + std::to_string(_counting.State.last_count_author) + ">"
-                     + "\n\n## Statistics"
-                     + "\n**Longest Chain:** " + std::to_string(_counting.State.highest_count)
-                     + " (<t:" + std::to_string(_counting.State.highest_count_sent) + ":R>)"
-                     + "\n**Longest Chain Ruined By:** <@" + std::to_string(_counting.State.longest_chain_failed_by) + ">"
-                     + "\n**Total Counts:** " + std::to_string(_counting.State.total_counts)
-                     + "\n**Total Failures:** " + std::to_string(_counting.State.total_failures))
-      .set_thumbnail(event.command.get_guild().get_icon_url()); 
-  }else
-  {
-    dpp::snowflake user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
-    std::function<void(dpp::confirmation_callback_t)> callback = std::bind(callback_cstats_getuser_success, std::placeholders::_1, event);
-    event.from->creator->user_get(user_id, callback);
-    return;
-  }
-  
-  message.add_embed(embed);
-  event.reply(message);
-}
-
 void add_top_clip(clip_message_info& message, dpp::cluster* bot, std::string key){
   std::string content = "> " + message.clip_msg_content + "\n \\- Submitted by <@" + message.clip_submitted_by.str() + ">";
   dpp::message m;
@@ -570,14 +509,6 @@ int main(int argc, char *argv[]) {
 		  	.set_description("Starts a quote vote with the selected message")
 		  	.set_application_id(bot.me.id);
 
-      dpp::slashcommand cstats_command;
-      cstats_command.set_name("cstats")
-         .set_description("Show stats for the counting channel")
-         .set_application_id(bot.me.id);
-      cstats_command.add_option(
-      dpp::command_option(dpp::co_user, "user", "Specific user you would like to get stats on", false)
-    );
-
 		if (ConfigParser::does_key_exist("guild_id")) {
 			std::string guild_id = ConfigParser::get_string("guild_id", "0");
       
@@ -586,8 +517,6 @@ int main(int argc, char *argv[]) {
       }
 
 			bot.guild_command_create(quote_command, guild_id);
-      bot.guild_command_create(cstats_command, guild_id);
-      
 		}
 		else {
 			std::cout << "No guild ID specified in config/hazelbot.cfg, registering all commands as public (this can take a while to sync, so it is recommended to set a guild id)" << std::endl;
@@ -597,7 +526,6 @@ int main(int argc, char *argv[]) {
       }
 
 			bot.global_command_create(quote_command);
-      bot.global_command_create(cstats_command);
 		}
 	});
 
@@ -607,10 +535,6 @@ int main(int argc, char *argv[]) {
 			if (event.command.get_command_name() == "Quote") appcmd_quote(bot, event);
 		}
 	});
-
-  bot.on_slashcommand([&bot](const dpp::slashcommand_t& event){
-    appcmd_cstats(event);
-  });
 
 	// Message recieved
 	bot.on_message_create([&bot](const dpp::message_create_t& event) {
@@ -634,6 +558,11 @@ int main(int argc, char *argv[]) {
 
   _counting = Counting();
   bot.on_message_create(std::bind(&Counting::OnMessageCreate, _counting, std::placeholders::_1));
+  
+  // initialize commands
+  CStats cmd_cstats = CStats();
+  bot.on_ready(std::bind(&CStats::InitializeCommand, cmd_cstats, std::placeholders::_1, _counting));
+  bot.on_slashcommand(std::bind(&CStats::OnCommandRun, cmd_cstats, std::placeholders::_1));
 
 	bot.start(dpp::st_wait);
 	return 0;
