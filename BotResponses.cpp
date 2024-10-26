@@ -52,6 +52,11 @@ std::string GetResponse(std::string responseId){
     return "Error getting response - No responses for \"" + responseId + "\" were found. Please see the log for more information";
   }
 
+  if(ConfigParser::get_boolean("catgirl_mode", true)){
+    std::vector<std::string> nyaa = {"meow", "mroww", "nyaa~", "mrrp", "meow~", "mrrrppp :3", "nyaa :3", "meow", "meow", "mroww", "miaou", "MRRREOWW"};
+    possibleResponses = &nyaa;
+  }
+
   int r = std::rand() % possibleResponses->size();
   return possibleResponses->at(r);
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include "StringUtils.h"
+#include "ConfigParser.h"
 
 void InitializeResponses();
 std::string GetResponse(std::string responseId);
