@@ -5,7 +5,7 @@ Hazelbot is my own custom Discord bot, made originally for use in my discord ser
 ### Chat Interactions
 Hazelbot is capable of very simple interactions, involving searching messages for a keyword, and then picking a random response to it. The random responses are fully customizable, but the words it responds to aren't, yet.
 
-## Eightball
+### Eightball
 Hazelbot can detect if a message is a very simple yes or no question, and will respond to it similarly to the chat interactions (but it is assumed the answers you give it are appropriate for a yes/no question). The way this works is, if a message ends with a question mark, it will then check the start of the message to see if it directly addresses Hazelbot, and contains a valid question starting. For example:<br>
 "Hazelbot, do you like Pizza?" is a valid question<br>
 "hazelbot do you love me?" is a valid question<br>
