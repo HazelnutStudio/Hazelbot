@@ -124,7 +124,6 @@ void Quote::OnCommandRun(const dpp::message_context_menu_t& event){
 
 void Quote::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
   if(!IsQuoteMessage(event.channel_id, event.message_id)){
-    std::cout << event.channel_id.str() << "." << event.message_id.str() << "\n";
     return;
   }  
   

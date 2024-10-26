@@ -105,17 +105,14 @@ void Counting::onContinueChain(const dpp::message_create_t& event){
 }
 
 Counting::Counting(){
-  std::cout << "initialize counting" << std::endl;
   Counting::_countingChannelID = dpp::snowflake(ConfigParser::get_string("counting_channel_id", "0"));
   State = CountingSavesystem::load();
 }
 
 void Counting::OnMessageCreate(const dpp::message_create_t& event){
-  std::cout << "message created" << std::endl;
   if(!isCountingMessage(event))
     return;
 
-  std::cout << "is a counting message" << std::endl;
   int sentNumber = getFirstNumberInString(event.msg.content);
 
   if(sentNumber == -1){
