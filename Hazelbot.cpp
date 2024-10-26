@@ -1,7 +1,6 @@
-﻿#include "Common.h"
+﻿#include "BotResponses.h"
+#include "Common.h"
 #include <cmath>
-#include <fstream>
-#include <sstream>
 #include "TimezoneOffsetFix.h"
 
 #include "Counting.h"
@@ -12,61 +11,6 @@
 
 std::string channel2id;
 std::string clips_channel_id;
-std::map<std::string, std::vector<std::string>> bot_responses;
-
-std::vector<std::string> parse_responses_from_file(std::string path){
-  std::ifstream file(path);
-  std::stringstream buffer;
-
-  buffer << file.rdbuf();
-
-  std::vector<std::string> tokens = StringUtils::split_string_on_nl(buffer.str());
-
-  return tokens;
-}
-
-std::vector<std::string> get_response_files(){
-  std::string path = "config/response";
-  std::vector<std::string> files;
-  for(const auto & entry : std::filesystem::directory_iterator(path)){
-    std::cout << "found file " << entry.path() << std::endl;
-    files.push_back(entry.path());
-  }
-
-  return files;
-}
-
-std::map<std::string, std::vector<std::string>> parse_responses_from_files(){
-  std::vector<std::string> files = get_response_files();
-  std::map<std::string, std::vector<std::string>> result;
-  for (int i=0; i < files.size(); i++) {
-    std::string path = files[i];
-    
-    // gets the name of the file without the extension
-    std::string filename = path.substr(path.find_last_of("/\\") + 1);
-    std::string::size_type const p(filename.find_last_of('.'));
-    std::string response_id = filename.substr(0, p);
-
-    std::vector responses = parse_responses_from_file(path);
-    result.insert({response_id, responses});
-  }
-  return result;
-}
-
-
-std::string get_response(std::string response_id){
-  // picks a random response for response_id from the corresponding file
-  std::vector<std::string> possible_responses = bot_responses[response_id];
-  
-  if(possible_responses.size() == 0){
-    // if there are no responses in the file
-    return "{empty response}";
-  }
-
-  int r = std::rand() % possible_responses.size();
-
-  return possible_responses[r];
-}
 
 void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 	if (event.msg.author == bot.me) {
@@ -80,12 +24,12 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 		for (size_t i = 0; i < question_startings.size(); i++)
 		{
 			if (StringUtils::starts_with(StringUtils::to_lower(event.msg.content), "hazelbot, " + question_startings[i])) {
-				event.reply(get_response("eightball"));
+				event.reply(GetResponse("eightball"));
         return;
 			}
 
 			if (StringUtils::starts_with(StringUtils::to_lower(event.msg.content), "hazelbot " + question_startings[i])) {
-				event.reply(get_response("eightball"));
+				event.reply(GetResponse("eightball"));
 				return;
 			}
 		}
@@ -93,7 +37,7 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 
 	// response - hazelbot (strikethrough)
 	if (StringUtils::to_lower(event.msg.content).find("~~hazelbot~~") != std::string::npos) {
-		event.reply(get_response("strikethrough"));
+		event.reply(GetResponse("strikethrough"));
 	}
 	// response - hazelbot
 	else if (StringUtils::to_lower(event.msg.content).find("hazelbot") != std::string::npos) {
@@ -102,22 +46,22 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 			return;
 		}
     
-    event.reply(get_response("hazelbot"));
+    event.reply(GetResponse("hazelbot"));
 	}
 
 	// response "silksong"
 	if (StringUtils::to_lower(event.msg.content).find("silksong") != std::string::npos) {
-    event.reply(get_response("silksong"));
+    event.reply(GetResponse("silksong"));
 	}
 
 	// response - step 3
 	if (StringUtils::to_lower(event.msg.content).find("step 3") != std::string::npos) {
-		event.reply(get_response("SQUISH"));
+		event.reply(GetResponse("SQUISH"));
 	}
 
 	// response - ping hazelbot
 	if (StringUtils::to_lower(event.msg.content).find("<@1269130556386578524>") != std::string::npos) {
-		event.reply(get_response("ping"));
+		event.reply(GetResponse("ping"));
 	}
 
 	// response - :3
@@ -127,12 +71,12 @@ void text_interactions(dpp::cluster& bot, const dpp::message_create_t& event) {
 
 	// response - let there be cabbits
 	if (StringUtils::to_lower(event.msg.content) == "let there be cabbits!") {
-		event.reply(get_response("let there be cabbits"));
+		event.reply(GetResponse("let there be cabbits"));
 	}
 
 	// response - cabbit
 	else if (StringUtils::to_lower(event.msg.content).find("cabbit") != std::string::npos) {
-		event.reply(get_response("cabbit"));
+		event.reply(GetResponse("cabbit"));
 	}
 
 	// debug
@@ -177,9 +121,8 @@ int main(int argc, char *argv[]) {
 	std::string token = ConfigParser::get_string("token", "");
 	channel2id = ConfigParser::get_string("2_id", "0");
 
-  bot_responses = parse_responses_from_files();
-
   InitializeTimezoneOffset();
+  InitializeResponses();
 
 	dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
@@ -193,6 +136,7 @@ int main(int argc, char *argv[]) {
 		}
 	});
 
+  // initialize modules
   Counting counting = Counting();
   bot.on_message_create(std::bind(&Counting::OnMessageCreate, &counting, std::placeholders::_1));
 
