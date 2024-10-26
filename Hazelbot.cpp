@@ -2,13 +2,13 @@
 #include "Common.h"
 #include "TimezoneOffsetFix.h"
 
-#include "Counting.h"
-#include "Clip.h"
-#include "ChatInteractions.h"
-#include "Two.h"
+#include "Modules/Counting/Counting.h"
+#include "Modules/Clip.h"
+#include "Modules/ChatInteractions.h"
+#include "Modules/Two.h"
 
-#include "cmds/CStats.h"
-#include "cmds/Quote.h"
+#include "Commands/CStats.h"
+#include "Commands/Quote.h"
 
 int main(int argc, char *argv[]) {
 	ConfigParser::initialize_configuration();

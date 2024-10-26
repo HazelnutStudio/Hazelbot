@@ -1,7 +1,7 @@
 #ifndef CLIP_H
 #define CLIP_H
 
-#include "Common.h"
+#include "../Common.h"
 
 struct Clip_MessageInfo{
 private:

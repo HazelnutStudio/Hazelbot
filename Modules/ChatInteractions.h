@@ -1,7 +1,7 @@
 #ifndef CHAT_INTERACTIONS_H
 #define CHAT_INTERACTIONS_H
 
-#include "Common.h"
+#include "../Common.h"
 
 class ChatInteractions{
 public:

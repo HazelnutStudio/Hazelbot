@@ -2,7 +2,7 @@
 #define CSTATS_H
 
 #include "../Common.h"
-#include "../Counting.h"
+#include "../Modules/Counting/Counting.h"
 #include <dpp/dispatcher.h>
 
 class CStats{
