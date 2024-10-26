@@ -1,6 +1,6 @@
 #include "BotResponses.h"
 
-const std::string RESPONSE_FILE_PATH = "config/responses";
+const std::string RESPONSE_FILE_PATH = "config/response";
 std::unordered_map<std::string, std::vector<std::string>> botResponses;
 
 std::vector<std::string> getResponseFiles(){
