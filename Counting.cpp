@@ -70,10 +70,10 @@ void Counting::onFailChain(const dpp::message_create_t& event, const CountingFai
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"❌");
 
   if(condition == WRONG_NUMBER){
-    event.reply("placeholder text (move Hazelbot::get_response() to new file)");
+    event.reply(GetResponse("counting_chain_fail_wrongnumber"));
   }
   else if(condition == DOUBLE_SEND){
-    event.reply("placeholder text (move Hazelbot::get_response() to new file)");
+    event.reply(GetResponse("counting_chain_fail_doublesend"));
   }
 
   saveState();
