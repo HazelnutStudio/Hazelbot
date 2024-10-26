@@ -2,30 +2,17 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
-#include "Counting.h"
 #include "TimezoneOffsetFix.h"
+
+#include "Counting.h"
+#include "Clip.h"
 
 #include "cmds/CStats.h"
 #include "cmds/Quote.h"
 
-const std::string v = "14";
-std::string quotes_saveto_channel_id;
-std::string counting_channel_id;
 std::string channel2id;
 std::string clips_channel_id;
-int quote_votes_required;
-int clip_votes_required;
 std::map<std::string, std::vector<std::string>> bot_responses;
-Counting _counting;
-
-struct clip_message_info{
-public:
-  std::string clip_msg_content;
-  dpp::snowflake clip_submitted_by;
-  
-};
-
-std::map<std::string, clip_message_info> active_clip_votes;
 
 std::vector<std::string> parse_responses_from_file(std::string path){
   std::ifstream file(path);
@@ -177,100 +164,6 @@ bool two_filter(dpp::cluster& bot, const dpp::message_create_t& event) {
 	return true;
 }
 
-void add_top_clip(clip_message_info& message, dpp::cluster* bot, std::string key){
-  std::string content = "> " + message.clip_msg_content + "\n \\- Submitted by <@" + message.clip_submitted_by.str() + ">";
-  dpp::message m;
-  m.content = content;
-  m.channel_id = ConfigParser::get_string("top_clips_channel_id", "");
-  active_clip_votes.erase(key);
-  bot->message_create(m);
-}
-
-bool clips_filter(const dpp::message_create_t& event){
-  std::string channel_id = event.msg.channel_id.str();
-  if(channel_id != clips_channel_id){
-    // message wasn't posted in the clips channel, so it should be ignored
-    return false;
-  }
-
-  if(event.msg.author == event.from->creator->me){
-    // checks if the message author was sent by the bot, if so, ignore
-    return false;
-  }
-
-  const std::string valid_links[2] = {"twitch.tv/hazelnutstudio/clip", "clips.twitch.tv/"};
-  for(std::string link : valid_links) {
-    if(event.msg.content.find(link) != std::string::npos){
-      // found valid link in message
-      return true;
-    }
-  }
-
-  // didn't find valid link in message
-  return false;
-}
-
-void clips_message_on_send(const dpp::message_create_t& event){
-  clip_message_info clip_info;
-  clip_info.clip_submitted_by = event.msg.author.id;
-  clip_info.clip_msg_content = event.msg.content;
-
-  std::string key = event.msg.channel_id.str() + "." + event.msg.id.str();
-  active_clip_votes.insert({key, clip_info});
-
-  // event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, get_quote_reaction_emoji());
-}
-
-bool is_clips_message(dpp::snowflake channel_id, dpp::snowflake message_id){
-  std::string key = channel_id.str() + "." + message_id.str();
-  if(active_clip_votes.count(key)){
-    // a key exists for this message, therefore it is a clip message
-    return true;
-  }
-  return false;
-}
-
-void clips_message_on_reaction_add_message_get_callback(const dpp::confirmation_callback_t callback, const dpp::message_reaction_add_t& event){
-  if(callback.is_error()){
-    std::cerr << "clips message get failed";
-    return;
-  }
-
-  dpp::message message = callback.get<dpp::message>();
-  dpp::reaction reaction;
-  for(dpp::reaction r : message.reactions){
-    if(r.emoji_name == event.reacting_emoji.name && r.emoji_id == event.reacting_emoji.id){
-      // same emoji
-      reaction = r;
-      break;
-    }
-  }
-
-  if(reaction.count_normal - 1 >= clip_votes_required){
-    // message has reached number of votes required
-    // -1 to account for bot's reaction
-    std::string key = message.channel_id.str() + "." + message.id.str();
-    if(!active_clip_votes.count(key)){
-      // message has likely just been added to the top clips channel while we were waiting on this callback 
-      return;
-    }
-    clip_message_info& info = active_clip_votes[key];
-    add_top_clip(info, event.from->creator, key);
-  }
-}
-
-void clips_message_on_reaction_add(const dpp::message_reaction_add_t& event){
-  return;
-  // if(event.reacting_emoji.format() != get_quote_reaction_emoji()){
-  //   // wrong reaction emoji, ignore
-  //   return;
-  // }
-  //
-  // // callback to get message
-  // dpp::command_completion_event_t callback = std::bind(clips_message_on_reaction_add_message_get_callback, std::placeholders::_1, event);
-  // event.from->creator->message_get(event.message_id, event.channel_id, callback);
-}
-
 bool delete_commands = false;
 int main(int argc, char *argv[]) {
 
@@ -283,11 +176,6 @@ int main(int argc, char *argv[]) {
 	ConfigParser::initialize_configuration();
 	std::string token = ConfigParser::get_string("token", "");
 	channel2id = ConfigParser::get_string("2_id", "0");
-	quotes_saveto_channel_id = ConfigParser::get_string("quotes_channel_id", "");
-	quote_votes_required = ConfigParser::get_integer("quote_votes_required", 1);
-  clip_votes_required = ConfigParser::get_integer("clip_votes_required", 1);
-  counting_channel_id = ConfigParser::get_string("counting_channel_id", "");
-  clips_channel_id = ConfigParser::get_string("clips_channel_id", "");
 
   bot_responses = parse_responses_from_files();
 
@@ -303,24 +191,20 @@ int main(int argc, char *argv[]) {
 		if (two_filter(bot, event)) {
 			bot.message_delete(event.msg.id, event.msg.channel_id);
 		}
-    if(clips_filter(event)){
-      clips_message_on_send(event);
-    }
 	});
 
-	bot.on_message_reaction_add([&bot](const dpp::message_reaction_add_t& event) {
-    if(is_clips_message(event.channel_id, event.message_id)){
-      clips_message_on_reaction_add(event);
-    }
-	});
+  Counting counting = Counting();
+  bot.on_message_create(std::bind(&Counting::OnMessageCreate, &counting, std::placeholders::_1));
 
-  _counting = Counting();
-  bot.on_message_create(std::bind(&Counting::OnMessageCreate, _counting, std::placeholders::_1));
+  Clip clip = Clip();
+  bot.on_message_create(std::bind(&Clip::OnMessageSent, &clip, std::placeholders::_1));
+  bot.on_message_reaction_add(std::bind(&Clip::OnMessageReactionAdd, &clip, std::placeholders::_1));
+
   
   // initialize commands
   CStats cmd_cstats = CStats();
-  bot.on_ready(std::bind(&CStats::InitializeCommand, cmd_cstats, std::placeholders::_1, _counting));
-  bot.on_slashcommand(std::bind(&CStats::OnCommandRun, cmd_cstats, std::placeholders::_1));
+  bot.on_ready(std::bind(&CStats::InitializeCommand, &cmd_cstats, std::placeholders::_1, counting));
+  bot.on_slashcommand(std::bind(&CStats::OnCommandRun, &cmd_cstats, std::placeholders::_1));
 
   Quote cmd_quote = Quote();
   bot.on_ready(std::bind(&Quote::InitializeCommand, &cmd_quote, std::placeholders::_1));
