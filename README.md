@@ -1,3 +1,34 @@
+# What is Hazelbot?
+Hazelbot is my own custom Discord bot, made originally for use in my discord server, but is very customizable. If you're willing to host it yourself, you can use it for any of your own discord servers. It's also open source, so, get this, you can contribute to it yourself. Or fork it and develop your own version of it or whatever. Although, if you're planning on going into the code, just be aware that this is my first time working in C++, so there might be.. horrible things in there..
+
+## Features
+### Chat Interactions
+Hazelbot is capable of very simple interactions, involving searching messages for a keyword, and then picking a random response to it. The random responses are fully customizable, but the words it responds to aren't, yet.
+
+## Eightball
+Hazelbot can detect if a message is a very simple yes or no question, and will respond to it similarly to the chat interactions (but it is assumed the answers you give it are appropriate for a yes/no question). The way this works is, if a message ends with a question mark, it will then check the start of the message to see if it directly addresses Hazelbot, and contains a valid question starting. For example:<br>
+"Hazelbot, do you like Pizza?" is a valid question<br>
+"hazelbot do you love me?" is a valid question<br>
+"hazelbot do you enjoy Murder" is not a valid question, because it doesn't contain a question mark<br>
+"do you like oranges?" is not a valid question, as it doesn't directly address Hazelbot<br>
+"Hazelbot, what is your opinion on the current state of the economy?" is not a valid question, as it doesn't contain a valid question starting (it is detected to not be a yes/no question)
+
+### 2
+Forces every message within a specified channel to contain the number 2, in some form. For example:<br>
+"2" is acceptable<br>
+"i went two the shops today" is acceptable<br>
+"i went to the shops today" is not acceptable, and will be deleted
+
+### Quote
+Hazelbot allows you to quote messages that people send, and have them saved to a channel. When you open the context menu on a message in Discord, you will see a expandable menu called "Apps". Inside of which will be a button that says "Quote" with Hazelbot's profile picture. When you press this button, Hazelbot will send a message to that channel telling users that you would like to quote that message, and telling them to react with a specified emoji in order to have it saved to the quotes channel. If the message reaches sufficient reactions, then it will be saved. Otherwise it won't be, and the message will be forgotten by the bot after a while (reacting to the message will no longer send it to the quotes channel)
+
+### Counting
+Creates a counting channel, where users can count in increments of one, with the goal of reaching the highest number possible. But whenever someone sends the wrong number, or sends a number twice in a row, the entire chain will be reset.
+This comes with an associated `/cstats` command, which can allow you to see all of the stats for the server, including total counts, the highest chain ever reached, and who failed it, etc. You can also add a user to this command, to see stats for that user specifically. There will also be a leaderboard for total counts, total failures, and highest failure, but that will come later.
+
+### Clips
+This works similarly to the quote system. When a message containing a valid clip link (currently hardcoded to work for my twitch channel only, but this will be customizable in the future) is posted in the clips channel, you will be able to vote on it. If it receives enough votes, it will be added to the top clips channel. This only detects clips, so any discussion in the clips channel is allowed.
+
 # Configuration
 Hazelbot has been designed to be customizable, and allows you to enable and disable each of its modules, as well as change their behaviour, and additionally allows you to add your own responses to the bot.
 
