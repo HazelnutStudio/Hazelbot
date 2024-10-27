@@ -70,7 +70,6 @@ void CStats::OnCommandRun(const dpp::slashcommand_t& event){
     std::cout << "wrong command loser" << std::endl;
     return;
   }
-  std::cout << "hi" << std::endl;
 
   dpp::embed embed;
   dpp::message message;
