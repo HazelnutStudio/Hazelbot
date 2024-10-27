@@ -19,7 +19,15 @@ std::string getCurrentTimeFormatted(){
   return oss.str();
 }
 
+Logger::Logger(int logLevel){
+  _logLevel = logLevel;  
+}
+
 void Logger::Log(std::string message, int level, std::string from){
+  if(level < _logLevel){
+    // user has specified to not be interested in this log
+    return;
+  }
   std::string timestamp = '[' + getCurrentTimeFormatted() + ']';
   std::string levelFormat;
   std::string fromFormat;

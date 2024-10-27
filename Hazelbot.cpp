@@ -11,12 +11,28 @@
 #include "Commands/Wisdom.h"
 
 int main(int argc, char* argv[]){
+  // parse launch arguments (TEMPORARY SOLUTION)
+  int logLevel = 2;
+  if(argc > 1){
+    for(int i = 1; i < argc; i++){
+      if(std::strcmp(argv[i], "delete-commands")){
+        std::cout << "later" << std::endl;
+      }
+      else if(std::strcmp(argv[i], "log-level")){
+        logLevel = std::stoi(argv[i + 1]);
+        i++;
+      }
+    }
+  }
+
+  // Initialize logger
+  Logger logger = Logger(logLevel);
+
   // Initialize core libraries
   ConfigParser::initialize_configuration();
   InitializeResponses();
   InitializeTimezoneOffset();
 
-  Logger logger = Logger();
   logger.Log("skill issue lmao", CRITICAL, "Hazelbot");
 
 
