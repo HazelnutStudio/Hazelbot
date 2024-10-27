@@ -100,14 +100,7 @@ void Quote::InitializeCommand(const dpp::ready_t& event){
   command.set_description("Starts a quote vote with the selected message");
   command.set_application_id(event.from->creator->me.id);
 
-  std::string guildId = ConfigParser::get_string("guild_id", "0");
-
-  if(guildId == "0"){
-    event.from->creator->global_command_create(command);
-    return;
-  }
-
-  event.from->creator->guild_command_create(command, guildId);
+  RegisterCommand(command);
 
   Quote::ActiveVotes = {}; 
 }

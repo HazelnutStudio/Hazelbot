@@ -8,6 +8,7 @@
 #include "Commands/CStats.h"
 #include "Commands/Quote.h"
 #include "Commands/Wisdom.h"
+#include "RegisterCommand.h"
 
 int main(int argc, char *argv[]) {
 	ConfigParser::initialize_configuration();
@@ -34,6 +35,8 @@ int main(int argc, char *argv[]) {
   bot.on_message_reaction_add(std::bind(&Clip::OnMessageReactionAdd, &clip, std::placeholders::_1));
   
   // initialize commands
+  bot.on_ready(&InitializeCommandRegisterer);
+
   CStats cmd_cstats = CStats();
   bot.on_ready(std::bind(&CStats::InitializeCommand, &cmd_cstats, std::placeholders::_1, counting));
   bot.on_slashcommand(std::bind(&CStats::OnCommandRun, &cmd_cstats, std::placeholders::_1));
