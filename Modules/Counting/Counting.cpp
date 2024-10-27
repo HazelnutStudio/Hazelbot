@@ -1,4 +1,25 @@
 #include "Counting.h"
+#include "../../EmojiHandler.h"
+
+std::string getReaction(CountingState state){
+  std::regex regex("[0,1,3-9]"); // matches any number other than 2
+  if(!std::regex_search(std::to_string(state.current_number - 1), regex)){
+    // number is made up of only '2'
+    return GetEmoji("counting_continue_chain_2_emoji", false, u8"2️⃣");
+  }
+
+  if((state.current_number - 1) % 100 == 0){
+    // divisible by 100
+    return GetEmoji("counting_continue_chain_one-hundred_emoji", false, u8"💯");
+  }
+
+  if(state.current_number - 1 >= state.highest_count){
+    // new high score
+    return GetEmoji("counting_continue_chain_new-highest_emoji", false, u8"☑️");
+  }
+
+  return GetEmoji("counting_continue_chain_emoji", false, u8"✅");
+}
 
 void Counting::saveState(){
   Log("Saving state...", DEBUG, "Counting");
@@ -72,7 +93,7 @@ void Counting::onFailChain(const dpp::message_create_t& event, const CountingFai
 
   State.total_failures++;
 
-  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"❌");
+  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, GetEmoji("counting_fail_chain_emoji", false, u8"❌"));
 
   if(condition == WRONG_NUMBER){
     event.reply(GetResponse("counting_chain_fail_wrongnumber"));
@@ -104,7 +125,8 @@ void Counting::onContinueChain(const dpp::message_create_t& event){
   State.user_stats.insert_or_assign(event.msg.author.id.str(), user);
   State.current_number++;
 
-  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
+  std::string reaction = getReaction(State);
+  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, reaction);
 
   Log("Counting chain has reached " + std::to_string(State.current_number - 1) + "!", DEBUG, "Counting");
   Counting::saveState();

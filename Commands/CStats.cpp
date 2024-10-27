@@ -64,6 +64,8 @@ void CStats::OnCommandRun(const dpp::slashcommand_t& event){
     return;
   }
 
+  Log("Recieved command run.", DEBUG, "CStats");
+
   dpp::embed embed;
   dpp::message message;
 

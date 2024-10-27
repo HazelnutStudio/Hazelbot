@@ -1,27 +1,6 @@
 #include "Quote.h"
 #include <dpp/dispatcher.h>
-
-std::string Quote::getReactionEmoji(bool inText = false){
-  std::string emojiId = ConfigParser::get_string("quote_reaction_emoji_id", "");
-  std::string emojiName = ConfigParser::get_string("quote_reaction_emoji_name", "");
-
-  if(emojiName == ""){
-    // no emoji given, get default instead
-    return u8"⭐";
-  }
-  if(emojiId == ""){
-    // no emoji id given, emoji is probably a default emoji
-    return emojiName;
-  }
-  else{
-    // emoji id was given, emoji is probably a custom emoji
-    // this also needs to be formatted differently if the emoji is used in text or as a raw emoji
-    // so that's annoying
-    std::string emojiRaw = emojiName + ":" + emojiId;
-    if(inText) return "<:" + emojiRaw + ">";
-    else return emojiRaw;
-  }
-}
+#include "../EmojiHandler.h"
 
 void Quote::addQuoteMessage(Quote_MessageInfo& message, dpp::cluster* bot, std::string key){
   Log("Adding quote message!", INFO, "Quote");
@@ -45,7 +24,7 @@ void Quote::getQuoteVoteMessageCallback(const dpp::confirmation_callback_t& call
   dpp::message data = callback.get<dpp::message>();
   Quote_MessageInfo info(data.guild_id, context.id, context.author.id, context.content, context.sent);
 
-  event.from->creator->message_add_reaction(data.id, data.channel_id, getReactionEmoji());
+  event.from->creator->message_add_reaction(data.id, data.channel_id, GetEmoji("quote_reaction_emoji"));
 
   std::string id = data.channel_id.str() + "." + data.id.str();
   Quote::ActiveVotes[id] = info;
@@ -108,7 +87,7 @@ void Quote::InitializeCommand(const dpp::ready_t& event){
 
 void Quote::OnCommandRun(const dpp::message_context_menu_t& event){
   Log("Recieved command run", DEBUG, "Quote");
-  std::string response = "<@" + std::to_string(event.command.get_issuing_user().id) + "> wants to quote the message " + event.ctx_message.get_url() + "! React with " + getReactionEmoji(true) + " to vote!";
+  std::string response = "<@" + std::to_string(event.command.get_issuing_user().id) + "> wants to quote the message " + event.ctx_message.get_url() + "! React with " + GetEmoji("quote_reaction_emoji", true) + " to vote!";
   event.reply(response);
 
   // callback to get information on the just sent message, used to add this to the list of active quote votes
@@ -122,7 +101,7 @@ void Quote::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
     return;
   }  
   
-  if(event.reacting_emoji.format() != getReactionEmoji()){
+  if(event.reacting_emoji.format() != GetEmoji("quote_reaction_emoji")){
     // wrong emoji was used
     return;
   }
