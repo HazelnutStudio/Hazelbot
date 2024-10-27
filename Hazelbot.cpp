@@ -1,4 +1,5 @@
 ﻿#include "Common.h"
+#include "Logger.h"
 
 #include "Modules/Counting/Counting.h"
 #include "Modules/Clip.h"
@@ -14,6 +15,10 @@ int main(int argc, char* argv[]){
   ConfigParser::initialize_configuration();
   InitializeResponses();
   InitializeTimezoneOffset();
+
+  Logger logger = Logger();
+  logger.Log("skill issue lmao", CRITICAL);
+
 
   // Initialize bot
   std::string token = ConfigParser::get_string("token", "");
