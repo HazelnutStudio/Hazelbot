@@ -1,7 +1,9 @@
 #include "Counting.h"
 
 void Counting::saveState(){
+  Log("Saving state...", DEBUG, "Counting");
   CountingSavesystem::save(State);
+  Log("Saved state!", INFO, "Counting");
 }
 
 bool Counting::isCountingMessage(const dpp::message_create_t& event){
@@ -17,6 +19,7 @@ bool Counting::isCountingMessage(const dpp::message_create_t& event){
     return false;
   }
   
+  Log("Message recieved", DEBUG, "Counting");
   return true;
 }
 
@@ -39,6 +42,8 @@ int Counting::getFirstNumberInString(const std::string& str){
 }
 
 void Counting::onFailChain(const dpp::message_create_t& event, const CountingFailChainCondition& condition){
+  Log("Counting chain failed at " + std::to_string(State.current_number - 1) + ".", INFO, "Counting");
+
   if(State.current_number > State.highest_count){
     // new longest chain 
     State.highest_count = State.current_number - 1;
@@ -101,12 +106,17 @@ void Counting::onContinueChain(const dpp::message_create_t& event){
 
   event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"✅");
 
+  Log("Counting chain has reached " + std::to_string(State.current_number - 1) + "!", DEBUG, "Counting");
   Counting::saveState();
 }
 
 Counting::Counting(){
+  Log("Initializing counting...", DEBUG, "Counting");
   Counting::_countingChannelID = dpp::snowflake(ConfigParser::get_string("counting_channel_id", "0"));
+  Log("Loading save file", DEBUG, "Counting");
   State = CountingSavesystem::load();
+  Log("Save file loaded!", DEBUG, "Counting");
+  Log("Counting initialized!", INFO, "Counting");
 }
 
 void Counting::OnMessageCreate(const dpp::message_create_t& event){
@@ -117,8 +127,11 @@ void Counting::OnMessageCreate(const dpp::message_create_t& event){
 
   if(sentNumber == -1){
     // no number was found in the string, so -1 was returned
+    Log("No number found in message.", DEBUG, "Counting");
     return;
   }
+
+  Log("Recieved number " + std::to_string(sentNumber) + "!", DEBUG, "Counting");
 
   if(sentNumber != Counting::State.current_number){
     onFailChain(event, WRONG_NUMBER);

@@ -1,5 +1,6 @@
 #include "CountingSavesystem.h"
 #include <fstream>
+#include "../../Logger.h"
 
 bool CountingSavesystem::save(CountingState state){
   nlohmann::json userdata;
@@ -32,7 +33,7 @@ bool CountingSavesystem::save(CountingState state){
   save_file.open("data/counting_data.json");
 
   if(!save_file.is_open()){
-    std::cout << "error opening file" << std::endl;
+    Log("Failed to open save file.", ERROR, "CountingSavesystem");
   }
 
   save_file << json;
@@ -45,7 +46,7 @@ CountingState CountingSavesystem::load(){
   save_file.open("data/counting_data.json");
 
   if(!save_file.is_open()){
-    std::cout << "couldn't open counting save file, creating new file instead.";
+    Log("Couldn't open save file, creating new file instead.", WARNING, "CountingSavesystem");
     return CountingState();
   }
 
