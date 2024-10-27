@@ -62,6 +62,6 @@ std::string GetResponse(std::string responseId){
   }
 
   int r = std::rand() % possibleResponses->size();
-  Log("Selected response " + std::to_string(r) + " for " + responseId + " - \"" + possibleResponses->at(r), DEBUG, "BotResponses");
+  Log("Selected response " + std::to_string(r) + " for " + responseId + " - \"" + possibleResponses->at(r) + "\"", DEBUG, "BotResponses");
   return possibleResponses->at(r);
 }
