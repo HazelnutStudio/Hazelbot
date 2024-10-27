@@ -1,6 +1,4 @@
-﻿#include "BotResponses.h"
-#include "Common.h"
-#include "TimezoneOffsetFix.h"
+﻿#include "Common.h"
 
 #include "Modules/Counting/Counting.h"
 #include "Modules/Clip.h"
@@ -9,6 +7,7 @@
 
 #include "Commands/CStats.h"
 #include "Commands/Quote.h"
+#include "Commands/Wisdom.h"
 
 int main(int argc, char *argv[]) {
 	ConfigParser::initialize_configuration();
@@ -43,6 +42,10 @@ int main(int argc, char *argv[]) {
   bot.on_ready(std::bind(&Quote::InitializeCommand, &cmd_quote, std::placeholders::_1));
   bot.on_message_context_menu(std::bind(&Quote::OnCommandRun, &cmd_quote, std::placeholders::_1));
   bot.on_message_reaction_add(std::bind(&Quote::OnMessageReactionAdd, &cmd_quote, std::placeholders::_1));
+
+  Wisdom cmd_wisdom = Wisdom();
+  bot.on_ready(std::bind(&Wisdom::InitializeCommand, &cmd_wisdom, std::placeholders::_1));
+  bot.on_slashcommand(std::bind(&Wisdom::OnCommandRun, &cmd_wisdom, std::placeholders::_1));
 
 	bot.start(dpp::st_wait);
 }
