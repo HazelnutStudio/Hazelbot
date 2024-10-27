@@ -14,5 +14,6 @@ void Wisdom::OnCommandRun(const dpp::slashcommand_t& event){
   if(event.command.get_command_name() != "wisdom")
     return;
 
+  Log("Recieved command run", DEBUG, "Wisdom");
   event.reply(GetResponse("wisdom_cmd"));
 }

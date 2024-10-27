@@ -1,4 +1,5 @@
 ﻿#include "Common.h"
+#include "Logger.h"
 
 #include "Modules/Counting/Counting.h"
 #include "Modules/Clip.h"
@@ -10,6 +11,24 @@
 #include "Commands/Wisdom.h"
 
 int main(int argc, char* argv[]){
+  // parse launch arguments (TEMPORARY SOLUTION)
+  int logLevel = 2;
+  if(argc > 1){
+    for(int i = 1; i < argc; i++){
+      if(std::strcmp(argv[i], "delete-commands") == 0){
+        std::cout << "later" << std::endl;
+      }
+      else if(std::strcmp(argv[i], "log-level") == 0){
+        logLevel = std::stoi(argv[i + 1]);
+        i++;
+      }
+    }
+  }
+
+  // Initialize logger
+  InitializeLogger(logLevel);
+  Log("Logger Initialized", DEBUG, "Hazelbot");
+
   // Initialize core libraries
   ConfigParser::initialize_configuration();
   InitializeResponses();
@@ -20,13 +39,13 @@ int main(int argc, char* argv[]){
 
   if(token == ""){
     // Handle error when no token is given
-    std::cerr << "A token is required to start the bot. Please correctly fill in the \"token\" field in the file \"config/Hazelbot.cfg\", and restart the bot.\n";
+    Log("A token is required to start the bot. Please correctly fill in the \"token\"field in the file \"config/Hazelbot.cfg\", and restart the bot.", CRITICAL, "Hazelbot");
     exit(INVALID_TOKEN);
   }
 
   dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
-  bot.on_log(dpp::utility::cout_logger());
+  bot.on_log(&DppLog);
 
   // Initialize modules
   ChatInteractions mod_chatInteractions = ChatInteractions();

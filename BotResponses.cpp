@@ -1,4 +1,5 @@
 #include "BotResponses.h"
+#include "Logger.h"
 
 const std::string RESPONSE_FILE_PATH = "config/response";
 std::unordered_map<std::string, std::vector<std::string>> botResponses;
@@ -7,7 +8,7 @@ std::vector<std::string> getResponseFiles(){
   std::vector<std::string> files;
 
   for(const auto& entry : std::filesystem::directory_iterator(RESPONSE_FILE_PATH)){
-    std::cout << "Found responses file \"" << entry.path() << "\n";
+    Log("Found responses file " + entry.path().string(), DEBUG, "BotResponses");
     files.push_back(entry.path());
   }
 
@@ -25,6 +26,7 @@ std::vector<std::string> parseResponseFile(std::string path){
 }
 
 void InitializeResponses(){
+  Log("Initializing responses...", DEBUG, "BotResponses");
   std::vector<std::string> files = getResponseFiles();
 
   for(std::string path : files){
@@ -37,19 +39,21 @@ void InitializeResponses(){
     std::vector<std::string> responses = parseResponseFile(path);
     botResponses.insert({responseId, responses});
   }
+
+  Log("Responses initialized!", INFO, "BotResponses");
 }
 
 std::string GetResponse(std::string responseId){
   if(botResponses.count(responseId) == 0){
-    std::cerr << "No responses found for \"" << responseId << "\". Please create the file.";
-    return "Error getting response - No responses for \"" + responseId + "\" were found. Please see the log for more information";
+    Log("No responses found for \"" + responseId + "\". Please create the file and restart the bot.", ERROR, "BotResponses");
+    return "Error getting response. Please see the log for more information";
   }
 
   std::vector<std::string>* possibleResponses = &botResponses.at(responseId);
 
   if(possibleResponses->size() == 0){
-    std::cerr << "Response file for \"" << responseId << "\" is empty! No responses found.";
-    return "Error getting response - No responses for \"" + responseId + "\" were found. Please see the log for more information";
+    Log("Response file for \"" + responseId + "\" is empty. Response files require at least one response.", ERROR, "BotResponses");
+    return "Error getting response. Please see the log for more information";
   }
 
   if(ConfigParser::get_boolean("catgirl_mode", true)){
@@ -58,5 +62,6 @@ std::string GetResponse(std::string responseId){
   }
 
   int r = std::rand() % possibleResponses->size();
+  Log("Selected response " + std::to_string(r) + " for " + responseId + " - \"" + possibleResponses->at(r) + "\"", DEBUG, "BotResponses");
   return possibleResponses->at(r);
 }

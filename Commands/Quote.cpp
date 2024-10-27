@@ -24,6 +24,7 @@ std::string Quote::getReactionEmoji(bool inText = false){
 }
 
 void Quote::addQuoteMessage(Quote_MessageInfo& message, dpp::cluster* bot, std::string key){
+  Log("Adding quote message!", INFO, "Quote");
   std::string timestamp = "<t:" + std::to_string(message.GetMessageSent() + GetTimezoneOffset()) + ":f>";
   std::string userMention = "<@" + std::to_string(message.GetMessageAuthorId()) + ">";
   std::string content = "> " + message.GetMessageContent() + "\n \\- " + userMention + ", " + timestamp;
@@ -37,7 +38,7 @@ void Quote::addQuoteMessage(Quote_MessageInfo& message, dpp::cluster* bot, std::
 
 void Quote::getQuoteVoteMessageCallback(const dpp::confirmation_callback_t& callback, const dpp::message_context_menu_t& event){
   if(callback.is_error()){
-    std::cout << "uh oh.." << std::endl;
+    Log("Failed to get quote vote message.", ERROR, "Quote");
     return;
   }
   dpp::message context = event.ctx_message;
@@ -52,7 +53,7 @@ void Quote::getQuoteVoteMessageCallback(const dpp::confirmation_callback_t& call
 
 void Quote::getReactedMessageCallback(const dpp::confirmation_callback_t& callback, const dpp::message_reaction_add_t& event){
   if(callback.is_error()){
-    std::cout << "uh oh\n";
+    Log("Failed to get reacted message.", ERROR, "Quote");
     return;
   } 
 
@@ -106,6 +107,7 @@ void Quote::InitializeCommand(const dpp::ready_t& event){
 }
 
 void Quote::OnCommandRun(const dpp::message_context_menu_t& event){
+  Log("Recieved command run", DEBUG, "Quote");
   std::string response = "<@" + std::to_string(event.command.get_issuing_user().id) + "> wants to quote the message " + event.ctx_message.get_url() + "! React with " + getReactionEmoji(true) + " to vote!";
   event.reply(response);
 

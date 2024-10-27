@@ -14,6 +14,7 @@ dpp::snowflake Clip_MessageInfo::GetMessageAuthor(){
 }
 
 void Clip::addTopClip(Clip_MessageInfo& message, dpp::cluster* bot, std::string key){
+  Log("Adding " + key + " to top clips!", INFO, "Clip");
   std::string userMention = "<@" + message.GetMessageAuthor().str() + ">";
   std::string content = "> " + message.GetMessageContent() + "\n \\- Submitted by " + userMention;
 
@@ -36,7 +37,7 @@ bool Clip::isClipsMessage(dpp::snowflake channelId, dpp::snowflake messageId){
 
 void Clip::onMessageReactionAddGetMessageCallback(const dpp::confirmation_callback_t& callback, const dpp::message_reaction_add_t& event){
   if(callback.is_error()){
-    std::cerr << "clips message get failed\n";
+    Log("Failed to get clip message.", ERROR, "Clip");
     return;
   } 
 
@@ -57,6 +58,7 @@ void Clip::onMessageReactionAddGetMessageCallback(const dpp::confirmation_callba
     std::string key = message.channel_id.str() + "." + message.id.str();
     if(!ActiveVotes.count(key)){
       // message has likely just been added to the top clips channel while we were waiting on this callback
+      Log("Message has been removed from ActiveVotes while waiting on callback. Ignoring.", DEBUG, "Clip");
       return;
     }
 
@@ -88,6 +90,8 @@ void Clip::OnMessageSent(const dpp::message_create_t& event){
 
   if(!validClipMessage) return;
 
+  Log("Clip message recieved!", INFO, "Clip");
+
   Clip_MessageInfo clipInfo(event.msg.content, event.msg.author.id);
   std::string key = event.msg.channel_id.str() + "." + event.msg.id.str();
   ActiveVotes.insert({key, clipInfo});
@@ -105,6 +109,8 @@ void Clip::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
     // wrong emoji reaction, ignore
     return;
   }
+
+  Log("Clip message vote recieved!", INFO, "Clip");
 
   // callback to get message
   dpp::command_completion_event_t callback = std::bind(&Clip::onMessageReactionAddGetMessageCallback, this, std::placeholders::_1, event);
