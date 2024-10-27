@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
   InitializeTimezoneOffset();
 
   Logger logger = Logger();
-  logger.Log("skill issue lmao", CRITICAL);
+  logger.Log("skill issue lmao", CRITICAL, "Hazelbot");
 
 
   // Initialize bot
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
 
   dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
-  bot.on_log(dpp::utility::cout_logger());
+  bot.on_log(std::bind(&Logger::DppLog, &logger, std::placeholders::_1));
 
   // Initialize modules
   ChatInteractions mod_chatInteractions = ChatInteractions();

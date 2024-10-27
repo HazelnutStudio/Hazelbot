@@ -19,9 +19,10 @@ std::string getCurrentTimeFormatted(){
   return oss.str();
 }
 
-void Logger::Log(std::string message, int level){
+void Logger::Log(std::string message, int level, std::string from){
   std::string timestamp = '[' + getCurrentTimeFormatted() + ']';
   std::string levelFormat;
+  std::string fromFormat;
   
   switch(level){
     case TRACE:
@@ -40,13 +41,22 @@ void Logger::Log(std::string message, int level){
       levelFormat = "[ERROR]";
       break;
     case CRITICAL:
-      levelFormat = "[CRITICAL ERROR]";
+      levelFormat = "[CRITICAL]";
       break;
   }
 
-  std::cout << timestamp << " " << levelFormat << " " << message << "\n";
+  if(from == ""){
+    fromFormat = "";
+  }
+  else{
+    fromFormat = '[' + from + ']';
+  }
+  
+  std::cout << timestamp << " " << fromFormat << " " << levelFormat << " " << message << "\n";
 }
 
 void Logger::DppLog(const dpp::log_t& event){
-  
+  std::string message = event.message;
+  int level = (int)event.severity;
+  Log(message, level, "DPP");
 }

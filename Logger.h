@@ -14,7 +14,7 @@ enum LogType{
 
 class Logger{
 public:
-  void Log(std::string message, int level);
+  void Log(std::string message, int level, std::string from = "");
   void DppLog(const dpp::log_t& event);
 };
 
