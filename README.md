@@ -58,6 +58,15 @@ If you're using a custom emoji for your quote voting, set this to the ID of that
 ### String `counting_channel_id=0`
 The ID for the counting channel. Leave this as zero to disable the counting system.
 
+### Counting Emojis
+These all work the same as the quote emoji, but for different parts of the counting system. There's a lot of them, so I'm merging them all into one section here to make it easier to reference. Add `_name` or `_id` to each of these to get the correct fields, reference `quote_reaction_emoji_name` for more information
+
+`counting_continue_chain_emoji` - ✅
+`counting_continue_chain_2_emoji` - 2️⃣
+`counting_continue_chain_one-hundred_emoji` - 💯
+`counting_continue_chain_new-highest_emoji` - ☑️
+`counting_fail_chain_emoji` - ❌
+
 ### String `clips_channel_id=0`
 The ID for the channel in which clips will be submitted to. Leave this as zero to disable the clips system.
 
