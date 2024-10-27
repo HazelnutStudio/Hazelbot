@@ -42,7 +42,7 @@ void Counting::onFailChain(const dpp::message_create_t& event, const CountingFai
   if(State.current_number > State.highest_count){
     // new longest chain 
     State.highest_count = State.current_number - 1;
-    State.highest_count_sent = event.msg.sent + GetTimezoneOffset();
+    State.highest_count_sent = event.msg.sent;
     State.longest_chain_failed_by = event.msg.author.id;
   }
 
@@ -93,7 +93,7 @@ void Counting::onContinueChain(const dpp::message_create_t& event){
   user.total_counts++;
   if(Counting::State.current_number > user.highest_count){
     user.highest_count = Counting::State.current_number - 1;
-    user.highest_count_sent = event.msg.sent + GetTimezoneOffset();
+    user.highest_count_sent = event.msg.sent;
   }
 
   State.user_stats.insert_or_assign(event.msg.author.id.str(), user);
