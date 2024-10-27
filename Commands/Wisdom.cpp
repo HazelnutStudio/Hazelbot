@@ -7,16 +7,7 @@ void Wisdom::InitializeCommand(const dpp::ready_t& event){
   command.set_description("various insightful messages, or something");
   command.set_application_id(event.from->creator->me.id);
 
-  std::string guildId = ConfigParser::get_string("guild_id", "0");
-
-  if(guildId == "0"){
-    // register command globally
-    event.from->creator->global_command_create(command);
-  }
-  else{
-    // register command per guild
-    event.from->creator->guild_command_create(command, guildId);
-  }
+  RegisterCommand(command);
 }
 
 void Wisdom::OnCommandRun(const dpp::slashcommand_t& event){

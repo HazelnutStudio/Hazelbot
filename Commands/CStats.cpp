@@ -13,14 +13,8 @@ void CStats::InitializeCommand(const dpp::ready_t& event, const Counting& counti
 
   command.add_option(userOption);
 
-  // might need a better way to handle this idk
-  std::string guildId = ConfigParser::get_string("guild_id", "0");
+  RegisterCommand(command);
 
-  if(guildId == "0"){
-    event.from->creator->global_command_create(command);
-  }
-
-  event.from->creator->guild_command_create(command, guildId);
   _countingInstance = &countingInstance;
 }
 
@@ -67,7 +61,6 @@ void CStats::GetUserCallback(const dpp::confirmation_callback_t& callback, const
 
 void CStats::OnCommandRun(const dpp::slashcommand_t& event){
   if(event.command.get_command_name() != "cstats"){
-    std::cout << "wrong command loser" << std::endl;
     return;
   }
 
