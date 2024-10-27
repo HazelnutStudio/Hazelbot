@@ -27,21 +27,19 @@ int main(int argc, char* argv[]){
 
   // Initialize logger
   InitializeLogger(logLevel);
+  Log("Logger Initialized", DEBUG, "Hazelbot");
 
   // Initialize core libraries
   ConfigParser::initialize_configuration();
   InitializeResponses();
   InitializeTimezoneOffset();
 
-  Log("skill issue lmao", CRITICAL, "Hazelbot");
-
-
   // Initialize bot
   std::string token = ConfigParser::get_string("token", "");
 
   if(token == ""){
     // Handle error when no token is given
-    std::cerr << "A token is required to start the bot. Please correctly fill in the \"token\" field in the file \"config/Hazelbot.cfg\", and restart the bot.\n";
+    Log("A token is required to start the bot. Please correctly fill in the \"token\"field in the file \"config/Hazelbot.cfg\", and restart the bot.", CRITICAL, "Hazelbot");
     exit(INVALID_TOKEN);
   }
 
