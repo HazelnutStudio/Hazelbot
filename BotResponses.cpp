@@ -1,4 +1,5 @@
 #include "BotResponses.h"
+#include "Logger.h"
 
 const std::string RESPONSE_FILE_PATH = "config/response";
 std::unordered_map<std::string, std::vector<std::string>> botResponses;
@@ -7,7 +8,7 @@ std::vector<std::string> getResponseFiles(){
   std::vector<std::string> files;
 
   for(const auto& entry : std::filesystem::directory_iterator(RESPONSE_FILE_PATH)){
-    std::cout << "Found responses file \"" << entry.path() << "\n";
+    Log("Found responses file " + entry.path().string(), INFO, "BotResponses");
     files.push_back(entry.path());
   }
 

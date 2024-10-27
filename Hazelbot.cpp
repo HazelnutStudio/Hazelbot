@@ -15,10 +15,10 @@ int main(int argc, char* argv[]){
   int logLevel = 2;
   if(argc > 1){
     for(int i = 1; i < argc; i++){
-      if(std::strcmp(argv[i], "delete-commands")){
+      if(std::strcmp(argv[i], "delete-commands") == 0){
         std::cout << "later" << std::endl;
       }
-      else if(std::strcmp(argv[i], "log-level")){
+      else if(std::strcmp(argv[i], "log-level") == 0){
         logLevel = std::stoi(argv[i + 1]);
         i++;
       }
@@ -26,14 +26,14 @@ int main(int argc, char* argv[]){
   }
 
   // Initialize logger
-  Logger logger = Logger(logLevel);
+  InitializeLogger(logLevel);
 
   // Initialize core libraries
   ConfigParser::initialize_configuration();
   InitializeResponses();
   InitializeTimezoneOffset();
 
-  logger.Log("skill issue lmao", CRITICAL, "Hazelbot");
+  Log("skill issue lmao", CRITICAL, "Hazelbot");
 
 
   // Initialize bot
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
 
   dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
-  bot.on_log(std::bind(&Logger::DppLog, &logger, std::placeholders::_1));
+  bot.on_log(&DppLog);
 
   // Initialize modules
   ChatInteractions mod_chatInteractions = ChatInteractions();

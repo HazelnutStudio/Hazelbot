@@ -4,6 +4,8 @@
 #include <ctime>
 #include <iomanip>
 
+int _logLevel;
+
 std::string getCurrentTimeFormatted(){
   using namespace std::chrono;
   auto now = system_clock::now();
@@ -19,11 +21,11 @@ std::string getCurrentTimeFormatted(){
   return oss.str();
 }
 
-Logger::Logger(int logLevel){
+void InitializeLogger(int logLevel){
   _logLevel = logLevel;  
 }
 
-void Logger::Log(std::string message, int level, std::string from){
+void Log(std::string message, int level, std::string from){
   if(level < _logLevel){
     // user has specified to not be interested in this log
     return;
@@ -63,7 +65,7 @@ void Logger::Log(std::string message, int level, std::string from){
   std::cout << timestamp << " " << fromFormat << " " << levelFormat << " " << message << "\n";
 }
 
-void Logger::DppLog(const dpp::log_t& event){
+void DppLog(const dpp::log_t& event){
   std::string message = event.message;
   int level = (int)event.severity;
   Log(message, level, "DPP");

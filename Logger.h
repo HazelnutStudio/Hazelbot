@@ -12,13 +12,8 @@ enum LogType{
   CRITICAL
 };
 
-class Logger{
-private:
-  int _logLevel;
-public:
-  Logger(int logLevel);
-  void Log(std::string message, int level, std::string from = "");
-  void DppLog(const dpp::log_t& event);
-};
+void InitializeLogger(int logLevel);
+void Log(std::string message, int level, std::string from = "");
+void DppLog(const dpp::log_t& event);
 
 #endif
