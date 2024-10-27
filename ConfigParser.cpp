@@ -25,8 +25,13 @@ void ConfigParser::initialize_configuration() {
 	{
 		// splits string into key and value
 		std::vector<std::string> t = StringUtils::split_string(tokens[i], '=');
-
-    Log("Found config entry { " + t[0] + ", " + t[1] + " }", DEBUG, "ConfigParser");
+    
+    if(t[0] == "token"){
+      Log("Found config entry { " + t[0] + ", (token hidden for security purposes) }", DEBUG, "ConfigParser");
+    }
+    else{
+      Log("Found config entry { " + t[0] + ", " + t[1] + " }", DEBUG, "ConfigParser");
+    }
 		config.insert({t[0], t[1]});
 	}
   Log("Configuration Initialized!", INFO, "ConfigParser");
