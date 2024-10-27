@@ -61,6 +61,12 @@ The ID for the counting channel. Leave this as zero to disable the counting syst
 ### String `clips_channel_id=0`
 The ID for the channel in which clips will be submitted to. Leave this as zero to disable the clips system.
 
+### String `clip_vote_emoji_name=⭐`
+The emoji to be used when voting on clips. If this is a default emoji, set this to the actual emoji character. If it is a custom emoji, set it to the name of the custom emoji and set the `clip_vote_emoji_id` field too.
+
+### String `clip_vote_emoji_id=`
+If you're using a custom emoji for your clip voting, set this to the ID of that emoji, as well as setting its name.
+
 ### String `top_clips_channel_id=0`
 The ID for the channel in which top clips will be saved to. This **must** be set if `clips_channel_id` is.
 

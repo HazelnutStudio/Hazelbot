@@ -1,4 +1,5 @@
 #include "Clip.h"
+#include "../EmojiHandler.h"
 
 Clip_MessageInfo::Clip_MessageInfo(std::string messageContent, dpp::snowflake author){
   _messageContent = messageContent;
@@ -97,7 +98,7 @@ void Clip::OnMessageSent(const dpp::message_create_t& event){
   ActiveVotes.insert({key, clipInfo});
 
   // to do: make the clip vote reaction customizable
-  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, u8"⭐");
+  event.from->creator->message_add_reaction(event.msg.id, event.msg.channel_id, GetEmoji("clip_vote_emoji"));
 }
 
 void Clip::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
@@ -105,7 +106,7 @@ void Clip::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
     return;
   }
 
-  if(event.reacting_emoji.format() != u8"⭐"){
+  if(event.reacting_emoji.format() != GetEmoji("clip_vote_emoji")){
     // wrong emoji reaction, ignore
     return;
   }
