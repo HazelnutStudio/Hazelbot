@@ -8,7 +8,6 @@
 class CStats{
 public:
   void InitializeCommand(const dpp::ready_t& event, Counting* countingInstance);
-  void GetUserCallback(const dpp::confirmation_callback_t& callback, const dpp::slashcommand_t& event);
   void OnCommandRun(const dpp::slashcommand_t& event);
 };
 
