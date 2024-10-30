@@ -2,7 +2,7 @@
 
 const Counting* _countingInstance;
 
-void CStats::InitializeCommand(const dpp::ready_t& event, const Counting& countingInstance){
+void CStats::InitializeCommand(const dpp::ready_t& event, Counting* countingInstance){
   dpp::slashcommand command;
 
   command.set_name("cstats");
@@ -15,7 +15,7 @@ void CStats::InitializeCommand(const dpp::ready_t& event, const Counting& counti
 
   RegisterCommand(command);
 
-  _countingInstance = &countingInstance;
+  _countingInstance = countingInstance;
 }
 
 void CStats::GetUserCallback(const dpp::confirmation_callback_t& callback, const dpp::slashcommand_t& event){
