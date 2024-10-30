@@ -1,14 +1,14 @@
-﻿#include "Common.h"
-#include "Logger.h"
+﻿#include "src/Common.h"
+#include "src/Logger.h"
 
-#include "Modules/Counting/Counting.h"
-#include "Modules/Clip.h"
-#include "Modules/ChatInteractions.h"
-#include "Modules/Two.h"
+#include "src/Modules/Counting/Counting.h"
+#include "src/Modules/Clip.h"
+#include "src/Modules/ChatInteractions.h"
+#include "src/Modules/Two.h"
 
-#include "Commands/CStats.h"
-#include "Commands/Quote.h"
-#include "Commands/Wisdom.h"
+#include "src/Commands/CStats.h"
+#include "src/Commands/Quote.h"
+#include "src/Commands/Wisdom.h"
 
 int main(int argc, char* argv[]){
   // parse launch arguments (TEMPORARY SOLUTION)
