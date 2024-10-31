@@ -8,8 +8,6 @@
 class Quote{
 private:
   void addQuoteMessage(Quote_MessageInfo& message, dpp::cluster* bot, std::string key);
-  void getQuoteVoteMessageCallback(const dpp::confirmation_callback_t& callback, const dpp::message_context_menu_t& event);
-  void getReactedMessageCallback(const dpp::confirmation_callback_t& callback, const dpp::message_reaction_add_t& event);
   int test;
 
 public:
