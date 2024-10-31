@@ -36,38 +36,6 @@ bool Clip::isClipsMessage(dpp::snowflake channelId, dpp::snowflake messageId){
   return false;
 }
 
-void Clip::onMessageReactionAddGetMessageCallback(const dpp::confirmation_callback_t& callback, const dpp::message_reaction_add_t& event){
-  if(callback.is_error()){
-    Log("Failed to get clip message.", ERROR, "Clip");
-    return;
-  } 
-
-  dpp::message message = callback.get<dpp::message>();
-  dpp::reaction reaction;
-
-  for(dpp::reaction r : message.reactions){
-    bool matchingName = r.emoji_name == event.reacting_emoji.name;
-    bool matchingId = r.emoji_id == event.reacting_emoji.id;
-
-    if(matchingName && matchingId){
-      reaction = r;
-      break;
-    }
-  }
-
-  if(reaction.count_normal - 1 >= ConfigParser::get_integer("clip_votes_required", 1)){
-    std::string key = message.channel_id.str() + "." + message.id.str();
-    if(!ActiveVotes.count(key)){
-      // message has likely just been added to the top clips channel while we were waiting on this callback
-      Log("Message has been removed from ActiveVotes while waiting on callback. Ignoring.", DEBUG, "Clip");
-      return;
-    }
-
-    Clip_MessageInfo& info = ActiveVotes.at(key);
-    addTopClip(info, event.from->creator, key);
-  }
-}
-
 void Clip::OnMessageSent(const dpp::message_create_t& event){
   // message wasn't sent in the clips channel
   if(event.msg.channel_id.str() != ConfigParser::get_string("clips_channel_id", "0")) return;
@@ -115,5 +83,35 @@ void Clip::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
 
   // callback to get message
   dpp::command_completion_event_t callback = std::bind(&Clip::onMessageReactionAddGetMessageCallback, this, std::placeholders::_1, event);
-  event.from->creator->message_get(event.message_id, event.channel_id, callback);
+  event.from->creator->message_get(event.message_id, event.channel_id, [&event, this](const dpp::confirmation_callback_t& callback){
+      if(callback.is_error()){
+        Log("Failed to get clip message.", ERROR, "Clip");
+        return;
+      }
+
+      dpp::message message = callback.get<dpp::message>();
+      dpp::reaction reaction;
+
+      for(dpp::reaction r : message.reactions){
+        bool matchingName = r.emoji_name == event.reacting_emoji.name;
+        bool matchingId = r.emoji_id == event.reacting_emoji.id;
+
+        if(matchingName && matchingId){
+          reaction = r;
+          break;
+        }
+      }
+
+      if(reaction.count_normal - 1 >= ConfigParser::get_integer("clip_votes_required", 1)){
+        std::string key = message.channel_id.str() + "." + message.id.str();
+        if(!ActiveVotes.count(key)){
+          // message has likely just been added to the top clips channel while we were waiting on this callback
+          Log("Message has been removed from ActiveVotes while waiting on callback. Ignoring.", DEBUG, "Clip");
+          return;
+        }
+
+        Clip_MessageInfo& info = ActiveVotes.at(key);
+        addTopClip(info, event.from->creator, key);
+      }
+  });
 }
