@@ -2,6 +2,21 @@
 
 const Counting* _countingInstance;
 
+std::string getPercentage(double frac1, double frac2, int dp){
+  double percentageRaw = frac1 / frac2;
+  int factor = std::pow(10, dp + 2);
+  int roundPercentage = std::round(percentageRaw * factor);
+  double percentage = roundPercentage / std::pow(10, dp);
+
+  std::string output = std::to_string(percentage);
+
+  // remove trailing zeroes
+  output.erase(output.find_last_not_of('0') + 1, std::string::npos);
+  output.erase(output.find_last_not_of('.') + 1, std::string::npos);
+   
+  return output;
+}
+
 void CStats::InitializeCommand(const dpp::ready_t& event, Counting* countingInstance){
   dpp::slashcommand command;
 
@@ -16,47 +31,6 @@ void CStats::InitializeCommand(const dpp::ready_t& event, Counting* countingInst
   RegisterCommand(command);
 
   _countingInstance = countingInstance;
-}
-
-void CStats::GetUserCallback(const dpp::confirmation_callback_t& callback, const dpp::slashcommand_t& event){
-  dpp::embed embed;
-  dpp::message message;
-  dpp::user_identified user = callback.get<dpp::user_identified>();
-  
-  embed.set_title("Counting Stats - " + user.global_name);
-
-
-  if(_countingInstance->State.user_stats.count(user.id.str()) == 0){
-    embed.set_description("User hasn't interacted with the counting system before");
-    return;
-  }
-  
-  const CountingUserState& userStats = _countingInstance->State.user_stats.at(user.id.str());
-
-
-  // find contribution stats top 1 decimal place 
-  std::string percentageContributionCounts = std::to_string(std::round(((double)userStats.total_counts / (double)_countingInstance->State.total_counts) * 1000) / 10);
-  std::string percentageContributionFailures = std::to_string(std::round(((double)userStats.total_failures / (double)_countingInstance->State.total_failures) * 1000) / 10);
-
-  // remove trailing zeroes
-  percentageContributionCounts.erase(percentageContributionCounts.find_last_not_of('0') + 1, std::string::npos);
-  percentageContributionCounts.erase(percentageContributionCounts.find_last_not_of('.') + 1, std::string::npos);
-
-  percentageContributionFailures.erase(percentageContributionFailures.find_last_not_of('0') + 1, std::string::npos);
-  percentageContributionFailures.erase(percentageContributionFailures.find_last_not_of('.') + 1, std::string::npos);
-
-  embed.set_description("**Highest Count:** " + std::to_string(userStats.highest_count)
-    + " (<t:" + std::to_string(userStats.highest_count_sent + GetTimezoneOffset()) + ":R>)"
-    + "\n**Total Counts** " + std::to_string(userStats.total_counts)
-    + " (" + percentageContributionCounts + "%)"
-    + "\n**Biggest Failure:** " + std::to_string(userStats.biggest_failure)
-    + "\n**Total Failures:** " + std::to_string(userStats.total_failures)
-    + " (" + percentageContributionFailures + "%)");
-  
-  embed.set_thumbnail(user.get_avatar_url());
-  message.add_embed(embed);
-  event.reply(message);
-
 }
 
 void CStats::OnCommandRun(const dpp::slashcommand_t& event){
@@ -86,8 +60,36 @@ void CStats::OnCommandRun(const dpp::slashcommand_t& event){
     // a user was given in the command option
     // but we have to do a callback to get some information on the user
     dpp::snowflake userId = std::get<dpp::snowflake>(event.get_parameter("user"));
-    std::function<void(dpp::confirmation_callback_t)> callback = std::bind(&CStats::GetUserCallback, this, std::placeholders::_1, event);
-    event.from->creator->user_get(userId, callback);
+
+    event.from->creator->user_get(userId, [&event, &embed](const dpp::confirmation_callback_t& callback){
+      dpp::message message;
+      dpp::user_identified user = callback.get<dpp::user_identified>();
+       
+      embed.set_title("Counting Stats - " + user.global_name);
+
+
+      if(_countingInstance->State.user_stats.count(user.id.str()) == 0){
+        embed.set_description("User hasn't interacted with the counting system before");
+        return;
+      }
+      
+      const CountingUserState& userStats = _countingInstance->State.user_stats.at(user.id.str());
+
+      std::string percentageContributionCounts = getPercentage(userStats.total_counts, _countingInstance->State.total_counts, 2);
+      std::string percentageContributionFailures = getPercentage(userStats.total_failures, _countingInstance->State.total_failures, 2);
+      
+      embed.set_description("**Highest Count:** " + std::to_string(userStats.highest_count)
+         + " (<t:" + std::to_string(userStats.highest_count_sent + GetTimezoneOffset()) + ":R>)"
+         + "\n**Total Counts** " + std::to_string(userStats.total_counts)
+         + " (" + percentageContributionCounts + "%)"
+         + "\n**Biggest Failure:** " + std::to_string(userStats.biggest_failure)
+         + "\n**Total Failures:** " + std::to_string(userStats.total_failures)
+         + " (" + percentageContributionFailures + "%)");
+         
+      embed.set_thumbnail(user.get_avatar_url());
+      message.add_embed(embed);
+      event.reply(message);
+    });
   }
 
   message.add_embed(embed);
