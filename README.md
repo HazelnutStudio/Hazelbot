@@ -140,13 +140,13 @@ Responds when someone fails a chain in the counting channel by sending a number 
 Responds whenever hazelbot detects a yes/no question directed at her. Fill this one with various yes or no answers
 
 ### `hazelbot.txt`
-Responds to any message containing the word "hazelbot".
+Responds to any message containing the bot's username.
 
 ### `let there be cabbits.txt`
 Responds whenever a message matches "Let there be cabbits!". Not case-sensitive.
 
 ### `ping.txt`
-Responds whenever you ping Hazelbot. Currently this is hardcoded to only respond when you ping the official Hazelbot.
+Responds whenever you ping Hazelbot.
 
 ### `silksong.txt`
 Responds to any message containing the word "silksong"
