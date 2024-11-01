@@ -82,8 +82,7 @@ void Clip::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
   Log("Clip message vote recieved!", INFO, "Clip");
 
   // callback to get message
-  dpp::command_completion_event_t callback = std::bind(&Clip::onMessageReactionAddGetMessageCallback, this, std::placeholders::_1, event);
-  event.from->creator->message_get(event.message_id, event.channel_id, [&event, this](const dpp::confirmation_callback_t& callback){
+  event.from->creator->message_get(event.message_id, event.channel_id, [&, event](const dpp::confirmation_callback_t& callback){
       if(callback.is_error()){
         Log("Failed to get clip message.", ERROR, "Clip");
         return;

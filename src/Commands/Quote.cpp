@@ -43,8 +43,7 @@ void Quote::OnCommandRun(const dpp::message_context_menu_t& event){
 
   // callback to get information on the just sent message, used to add this to the list of active quote votes
 
-  std::function<void(dpp::confirmation_callback_t)> callback = std::bind(&Quote::getQuoteVoteMessageCallback, this, std::placeholders::_1, event);
-  event.get_original_response([&event, this](const dpp::confirmation_callback_t& callback){
+  event.get_original_response([&, event](const dpp::confirmation_callback_t& callback){
     if(callback.is_error()){
       Log("Failed to get quote vote message.", ERROR, "Quote");
       return;
@@ -70,7 +69,7 @@ void Quote::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
     return;
   }
 
-  event.from->creator->message_get(event.message_id, event.channel_id, [&event, this](const dpp::confirmation_callback_t& callback){
+  event.from->creator->message_get(event.message_id, event.channel_id, [&, event](const dpp::confirmation_callback_t& callback){
     if(callback.is_error()){
       Log("Failed to get reacted message.", ERROR, "Quote");
       return;
@@ -100,7 +99,7 @@ void Quote::OnMessageReactionAdd(const dpp::message_reaction_add_t& event){
         return;
       }
 
-      Quote_MessageInfo& info = Quote::ActiveVotes[key];
+      Quote_MessageInfo& info = Quote::ActiveVotes.at(key);
       addQuoteMessage(info, event.from->creator, key);
     }
   });

@@ -60,7 +60,6 @@ void CStats::OnCommandRun(const dpp::slashcommand_t& event){
     // a user was given in the command option
     // but we have to do a callback to get some information on the user
     dpp::snowflake userId = std::get<dpp::snowflake>(event.get_parameter("user"));
-    std::function<void(dpp::confirmation_callback_t)> callback = std::bind(&CStats::GetUserCallback, this, std::placeholders::_1, event);
 
     event.from->creator->user_get(userId, [&event, &embed](const dpp::confirmation_callback_t& callback){
       dpp::message message;
