@@ -55,15 +55,19 @@ void CStats::OnCommandRun(const dpp::slashcommand_t& event){
       + "\n**Total Counts:** " + std::to_string(_countingInstance->State.total_counts)
       + "\n**Total Failures:** " + std::to_string(_countingInstance->State.total_failures));
     embed.set_thumbnail(event.command.get_guild().get_icon_url());
+
+    message.add_embed(embed);
+    event.reply(message);
   }
   else{
     // a user was given in the command option
     // but we have to do a callback to get some information on the user
     dpp::snowflake userId = std::get<dpp::snowflake>(event.get_parameter("user"));
 
-    event.from->creator->user_get(userId, [&event, &embed](const dpp::confirmation_callback_t& callback){
-      dpp::message message;
+    event.from->creator->user_get(userId, [&, event](const dpp::confirmation_callback_t& callback){
       dpp::user_identified user = callback.get<dpp::user_identified>();
+      dpp::message message;
+      dpp::embed embed;
        
       embed.set_title("Counting Stats - " + user.global_name);
 
@@ -91,7 +95,4 @@ void CStats::OnCommandRun(const dpp::slashcommand_t& event){
       event.reply(message);
     });
   }
-
-  message.add_embed(embed);
-  event.reply(message);
 }
