@@ -18,11 +18,13 @@ void ChatInteractions::OnMessageSent(const dpp::message_create_t& event){
     }
   }
 
-  if(StringUtils::to_lower(event.msg.content).find("~~hazelbot~~") != std::string::npos){
+  std::string name = StringUtils::to_lower(event.from->creator->me.username);
+  Log(name, DEBUG, "ChatInteractions");
+  if(StringUtils::to_lower(event.msg.content).find("~~" + name + "~~") != std::string::npos){
     event.reply(GetResponse("strikethrough"));
   }
 
-  else if(StringUtils::to_lower(event.msg.content).find("hazelbot") != std::string::npos){
+  else if(StringUtils::to_lower(event.msg.content).find(name) != std::string::npos){
     event.reply(GetResponse("hazelbot"));
   }
 
@@ -34,7 +36,7 @@ void ChatInteractions::OnMessageSent(const dpp::message_create_t& event){
     event.reply(GetResponse("SQUISH"));
   }
 
-  else if(event.msg.content.find("<@1269130556386578524>") != std::string::npos){
+  else if(event.msg.content.find("<@" + event.from->creator->me.id.str() + ">") != std::string::npos){
     event.reply(GetResponse("ping"));
   }
 
