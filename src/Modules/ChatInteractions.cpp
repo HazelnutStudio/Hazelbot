@@ -3,7 +3,7 @@
 const std::vector<std::string> QUESTION_STARTINGS = {"are", "do", "did", "can", "should", "would", "could", "am i", "is", "will", "won't", "would", "wouldn't", "have" };
 
 void ChatInteractions::OnMessageSent(const dpp::message_create_t& event){
-  if(event.msg.author == event.from->creator->me) return;
+  if(event.msg.author == event.from()->creator->me) return;
 
   if(StringUtils::ends_with(event.msg.content, "?")){
     for(std::string starting : QUESTION_STARTINGS){
@@ -18,7 +18,7 @@ void ChatInteractions::OnMessageSent(const dpp::message_create_t& event){
     }
   }
 
-  std::string name = StringUtils::to_lower(event.from->creator->me.username);
+  std::string name = StringUtils::to_lower(event.from()->creator->me.username);
   Log(name, DEBUG, "ChatInteractions");
   if(StringUtils::to_lower(event.msg.content).find("~~" + name + "~~") != std::string::npos){
     event.reply(GetResponse("strikethrough"));
@@ -36,7 +36,7 @@ void ChatInteractions::OnMessageSent(const dpp::message_create_t& event){
     event.reply(GetResponse("SQUISH"));
   }
 
-  else if(event.msg.content.find("<@" + event.from->creator->me.id.str() + ">") != std::string::npos){
+  else if(event.msg.content.find("<@" + event.from()->creator->me.id.str() + ">") != std::string::npos){
     event.reply(GetResponse("ping"));
   }
 
