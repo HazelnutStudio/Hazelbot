@@ -1,3 +1,6 @@
+outdated mirror
+go see https://codeberg.org/astraesoftware/hazelbot
+
 # What is Hazelbot?
 Hazelbot is my own custom Discord bot, made originally for use in my discord server, but is very customizable. If you're willing to host it yourself, you can use it for any of your own discord servers. It's also open source, so, get this, you can contribute to it yourself. Or fork it and develop your own version of it or whatever. Although, if you're planning on going into the code, just be aware that this is my first time working in C++, so there might be.. horrible things in there..
 
